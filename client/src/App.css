@@ -1,0 +1,126 @@
+/*-------НАЧАЛО ОБНУЛЕНИЯ----------*/
+* {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+*,
+*:before,
+*:after {
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+:focus,
+:active {
+  outline: none;
+}
+
+a:focus,
+a:active {
+  outline: none;
+}
+
+nav,
+footer,
+header,
+aside {
+  display: block;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  font-size: 100%;
+  line-height: 1;
+  font-size: 14px;
+  -ms-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+input,
+button,
+textarea {
+  font-family: inherit;
+}
+
+input::-ms-clear {
+  display: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+button::-moz-focus-inner {
+  padding: 0;
+  border: 0;
+}
+
+a,
+a:visited {
+  text-decoration: none;
+  color: #000;
+}
+
+a:hover {
+  text-decoration: none;
+}
+
+ul li {
+  list-style: none;
+}
+
+img {
+  vertical-align: top;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+/*---------КОНЕЦ ОБНУЛЕНИЯ-----------*/
+
+/*-------НАЧАЛО СТРАНИЦЫ ШАБЛОНА-------------*/
+body {
+  font-family: Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+  background-color: #fff;
+}
+
+.content {
+  width: 100%;
+  flex: 1 1 auto;
+  padding-top: 80px;
+  font-size: 1.2rem;
+}
+
+h1 {
+  font-weight: bold;
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 0.6rem;
+  font-family: raleway;
+  text-align: center;
+}
+
+h3 {
+  width: 100%;
+  font-weight: bold;
+  text-align: center;
+  font-size: 1.2rem;
+}

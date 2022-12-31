@@ -1,0 +1,21 @@
+.intro h1,
+.intro h2 {
+    font-size: 2rem;
+    margin-bottom: 20px;
+}
+
+.intro__text {
+    margin-top: 10px;
+    font-size: 16px;
+    line-height: 25px;
+    margin-bottom: 20px;
+}
+
+.centered {
+    justify-content: center;
+    align-items: center;
+}
+
+.main-image img {
+    max-width: 100%;
+}
