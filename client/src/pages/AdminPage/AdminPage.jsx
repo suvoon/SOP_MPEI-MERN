@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './style.css'
 
 export const AdminPage = () => {
+    //TODO: Разбить табы по компонентам хотя бы
 
     const navigate = useNavigate();
     const [openTab, setOpenTab] = useState(true);
@@ -102,27 +103,46 @@ export const AdminPage = () => {
 
     }
 
-    const createSurveyBlock = function () {
-        setSurveyBlocks([...surveyBlocks,
-        <>
-            <div className='survey-constructor__survey-block'>
-                <div className='block-title'>
-                    <label>Заголовок (название дисциплины): </label>
-                    <input type="text" />
-                    <div className='survey-constructor__question'>
-                        <button
-                            className='survey-constructor__create-btn'
-                            type="button"
-                            id={surveyBlocks.length}
-                        >
-                            Добавить вопрос
-                        </button>
-                    </div>
+    const surveyAddHandler = function (ev) {
+        ev.preventDefault();
 
-                </div>
-            </div>
-        </>
-        ])
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("name", userName);
+            urlencoded.append("login", userLogin);
+            urlencoded.append("password", userPass);
+            urlencoded.append("group", userGroup);
+            urlencoded.append("admin", userAdmin);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'POST',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/admin/user", requestOptions)
+                .then(response => response.text())
+                .then(result => setStatus(result))
+                .catch(error => console.log('error', error));
+        }
+
+    }
+
+    const createSurveyBlock = function () {
+        setSurveyBlocks(surveyBlocks.concat([[]]));
+    }
+
+    const createQuestion = function (id) {
+        setSurveyBlocks(surveyBlocks.map((surveyBlock, blockID) => {
+            return blockID === id ? surveyBlock.concat("rating") : surveyBlock;
+        }));
     }
 
     return (
@@ -323,7 +343,49 @@ export const AdminPage = () => {
                                 Добавить блок
                             </button>
                             {
-                                surveyBlocks.map(block => block)
+                                surveyBlocks.map((surveyBlock, id) => {
+                                    return (
+                                        <div className='survey-constructor__survey-block' key={id}>
+                                            <div className='block-title'>
+                                                <label>Заголовок (название дисциплины): </label>
+                                                <input type="text" />
+                                                <div className='survey-constructor__question'>
+                                                    <button
+                                                        className='survey-constructor__create-btn'
+                                                        type="button"
+                                                        id={id}
+                                                        onClick={() => createQuestion(id)}
+                                                    >
+                                                        Добавить вопрос
+                                                    </button>
+                                                </div>
+                                                {
+                                                    surveyBlock.map((question, qid) => {
+                                                        return (
+                                                            <fieldset key={qid}>
+                                                                <div class="question-type">
+                                                                    <label>Оценка (от 1 до 5): </label>
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="rate" />
+                                                                </div>
+                                                                <div class="question-type">
+                                                                    <label>Обязательное поле: </label>
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="important" />
+                                                                </div>
+                                                                <div class="question-type">
+                                                                    <label>Необязательное поле: </label>
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="unimportant" />
+                                                                </div>
+                                                                <textarea class="question-field" name={`qfield[${id}][${qid}]`} cols="30" rows="4" placeholder="Введите вопрос">
+
+                                                                </textarea>
+                                                            </fieldset>
+                                                        )
+                                                    })
+                                                }
+                                            </div>
+                                        </div>
+                                    )
+                                })
                             }
                             <input
                                 type="submit"
