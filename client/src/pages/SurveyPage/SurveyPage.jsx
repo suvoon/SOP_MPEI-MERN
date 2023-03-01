@@ -102,6 +102,15 @@ export const SurveyPage = () => {
                                             <input type="text" className="text" name={field.name} />
                                         </div>
                                     </div>);
+                                case 'input_imp':
+                                    return (<div key={i}>
+                                        <div className="quiz__block">
+                                            <h3>{field.value}</h3>
+                                        </div>
+                                        <div className="quiz__block quiz__note">
+                                            <input type="text" className="text" name={field.name} important />
+                                        </div>
+                                    </div>);
                                 default:
 
                                     break;

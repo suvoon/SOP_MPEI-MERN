@@ -15,6 +15,7 @@ export const AdminPage = () => {
     const [userGroup, setUserGroup] = useState('');
     const [userAdmin, setUserAdmin] = useState(false);
     const [status, setStatus] = useState('');
+    const [redirect, setRedirect] = useState(false);
 
     const [surveys, setSurveys] = useState([]);
     const [createSurvey, setCreateSurvey] = useState(false);
@@ -22,7 +23,7 @@ export const AdminPage = () => {
 
     const token = localStorage.getItem('token');
 
-    useEffect(() => {
+    const updateSurveys = () => {
         if (!token) {
             navigate('/');
         }
@@ -42,7 +43,47 @@ export const AdminPage = () => {
                 })
                 .catch(error => { console.log(error) });
         }
-    }, [token, navigate]);
+    }
+
+    useEffect(updateSurveys, [token, navigate]);
+
+    useEffect(() => {
+        if (redirect) {
+            setRedirect(false);
+            navigate('/admin');
+        }
+    }, [redirect, navigate]);
+
+    const surveySubmitHandler = function (ev) {
+        setRedirect(true);
+    };
+
+    const surveyDeleteHandler = function (id) {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("surveyID", id);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'DELETE',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/admin/survey", requestOptions)
+                .then(response => {
+                    updateSurveys();
+                    return response.text()
+                })
+                .catch(error => console.log('error', error));
+        }
+    };
 
     //TODO: useEffect admin check
 
@@ -72,38 +113,6 @@ export const AdminPage = () => {
     }
 
     const userAddHandler = function (ev) {
-        ev.preventDefault();
-
-        if (!token) {
-            navigate('/');
-        }
-        else {
-            let myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
-            myHeaders.append("Authorization", `Bearer ${token}`);
-
-            let urlencoded = new URLSearchParams();
-            urlencoded.append("name", userName);
-            urlencoded.append("login", userLogin);
-            urlencoded.append("password", userPass);
-            urlencoded.append("group", userGroup);
-            urlencoded.append("admin", userAdmin);
-
-            var requestOptions = {
-                headers: myHeaders,
-                method: 'POST',
-                body: urlencoded
-            };
-
-            fetch("http://localhost:8000/admin/user", requestOptions)
-                .then(response => response.text())
-                .then(result => setStatus(result))
-                .catch(error => console.log('error', error));
-        }
-
-    }
-
-    const surveyAddHandler = function (ev) {
         ev.preventDefault();
 
         if (!token) {
@@ -307,8 +316,21 @@ export const AdminPage = () => {
                                             <td>{survey.period}</td>
                                             <td>{new Date(survey.start_date).toLocaleDateString()}</td>
                                             <td>{new Date(survey.end_date).toLocaleDateString()}</td>
-                                            <td><input type='submit' value='Удалить' name={`delete-survey[${survey._id}]`} class='info-block__button' />
-                                                <input type='button' value='Редактировать' name='edituser' class='info-block__button info-block__edit' /></td>
+                                            <td>
+                                                <input
+                                                    type='submit'
+                                                    value='Удалить'
+                                                    name={`delete-survey[${survey._id}]`}
+                                                    class='info-block__button'
+                                                    onClick={() => surveyDeleteHandler(survey._id)}
+                                                />
+                                                <input
+                                                    type='button'
+                                                    value='Редактировать'
+                                                    name='edituser'
+                                                    class='info-block__button info-block__edit'
+                                                />
+                                            </td>
                                         </tr>
                                     )
                                 })
@@ -324,12 +346,17 @@ export const AdminPage = () => {
                     >
                         Создать опрос
                     </button>
-                    <form method="post">
+                    <form
+                        action="http://localhost:8000/admin/survey"
+                        method='POST'
+                        onSubmit={surveySubmitHandler}
+                    >
                         <div className={`survey-constructor__constructor-block ${createSurvey ? 'active' : ''}`}>
                             <div className="survey-constructor__title-inputs">
                                 <div className="title-inputs__block"><label htmlFor="" >Период (заголовок):</label><input type="text" name="period" id="" /></div>
-                                <div className="title-inputs__block"><label htmlFor="" >Дата начала:</label><input type="date" name="startdate" id="" /></div>
-                                <div className="title-inputs__block"><label htmlFor="" >Дата окончания:</label><input type="date" name="enddate" id="" /></div>
+                                <div className="title-inputs__block"><label htmlFor="" >Дата начала:</label><input type="date" name="start_date" id="" /></div>
+                                <div className="title-inputs__block"><label htmlFor="" >Дата окончания:</label><input type="date" name="end_date" id="" /></div>
+                                <div className="title-inputs__block"><label htmlFor="" >Группы:</label><input type="text" name="groups" id="" /></div>
                                 <div className="title-inputs__block">
                                     <label htmlFor="" >Описание:</label><textarea name="description" id="" cols="50" rows="5"></textarea>
                                     <label htmlFor="" >Описание по умолчанию:</label><input type="checkbox" name="desc-default" id="" />
@@ -348,7 +375,7 @@ export const AdminPage = () => {
                                         <div className='survey-constructor__survey-block' key={id}>
                                             <div className='block-title'>
                                                 <label>Заголовок (название дисциплины): </label>
-                                                <input type="text" />
+                                                <input type="text" name={`title[${id}]`} />
                                                 <div className='survey-constructor__question'>
                                                     <button
                                                         className='survey-constructor__create-btn'
@@ -365,15 +392,15 @@ export const AdminPage = () => {
                                                             <fieldset key={qid}>
                                                                 <div class="question-type">
                                                                     <label>Оценка (от 1 до 5): </label>
-                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="rate" />
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="rating" />
                                                                 </div>
                                                                 <div class="question-type">
                                                                     <label>Обязательное поле: </label>
-                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="important" />
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="input" />
                                                                 </div>
                                                                 <div class="question-type">
                                                                     <label>Необязательное поле: </label>
-                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="unimportant" />
+                                                                    <input type="radio" name={`question[${id}][${qid}]`} value="input_imp" />
                                                                 </div>
                                                                 <textarea class="question-field" name={`qfield[${id}][${qid}]`} cols="30" rows="4" placeholder="Введите вопрос">
 
@@ -387,6 +414,11 @@ export const AdminPage = () => {
                                     )
                                 })
                             }
+                            <input
+                                type="hidden"
+                                name="token"
+                                value={token}
+                            />
                             <input
                                 type="submit"
                                 name="newsurvey-submit"

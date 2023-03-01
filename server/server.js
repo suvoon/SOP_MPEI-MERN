@@ -258,6 +258,76 @@ app.get('/admin/survey', (req, res) => {
     }
 });
 
+app.post('/admin/survey', (req, res) => {
+
+    let { period, description, start_date, end_date, groups, title, question, qfield } = req.body;
+    groups = groups.replace(/ /g, '').split(",");
+
+    let count = 0;
+    const content = title?.map((sTitle, id) => {
+        let block = [{ type: "title", value: sTitle }];
+        if (question) {
+            question[id].forEach((q, qid) => {
+                block.push({ type: q, name: `question${count}`, value: qfield[id][qid] });
+                count++;
+            });
+        };
+
+        return block;
+    }).flat();
+
+    const accessToken = req.body.token;
+    if (!accessToken) res.status(401).send('Unauthorized request');
+    else {
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+
+            const _id = mongoose.Types.ObjectId();
+            const link = encodeID.encode(_id.valueOf());
+            dbSurveys.create(
+                {
+                    _id,
+                    period,
+                    description,
+                    start_date,
+                    end_date,
+                    groups,
+                    link,
+                    content,
+                    completed: []
+                },
+                err => {
+                    if (err) console.log("ERROR CREATING SURVEY:", err);
+                    else {
+                        res.redirect(`localhost:3000/`);
+                    }
+                }
+            );
+
+        });
+    }
+});
+
+app.delete('/admin/survey', (req, res) => {
+
+    const surveyID = req.body.surveyID;
+
+    const accessToken = req.headers.authorization;
+    if (!accessToken) res.status(401).send('Unauthorized request');
+    else {
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+
+            dbSurveys.deleteOne({ _id: surveyID },
+                err => {
+                    if (err) console.log("ERROR CREATING SURVEY:", err);
+                }
+            );
+
+        });
+    }
+});
+
 app.listen(PORT, () => {
     console.log(`LISTENING TO PORT ${PORT}`);
 });
