@@ -121,7 +121,7 @@ export const NavBar = () => {
                             </Link>
                         </li>
                         <li><Link to="/surveys" className='nav-link'>Опрос</Link></li>
-                        <li><Link to="/" className='nav-link'>Результаты</Link></li>
+                        <li><Link to="/results" className='nav-link'>Результаты</Link></li>
                         <li><Link to="/" className='nav-link'>Форум</Link></li>
                         <li className="user">
                             {isAuth

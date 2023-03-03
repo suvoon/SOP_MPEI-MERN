@@ -1,0 +1,17 @@
+.group-buttons {
+    display: flex;
+
+}
+
+.group-buttons button {
+    background-color: #ffffffe5;
+    margin: 5px;
+    padding: 5px 7px;
+    border: 1px solid #000;
+}
+
+.group-buttons button:hover {
+    background-color: #bebebee5;
+    margin: 6px;
+    border: 0;
+}

@@ -1,0 +1,35 @@
+.surveys__table {
+    border: 1px solid #000;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: #fff;
+    width: 100%;
+}
+
+td,
+th {
+    border: 1px solid #C4C4C4;
+    padding: 15px 10px 15px 10px;
+}
+
+td {
+    background-color: #ffffff;
+}
+
+td a,
+td a:visited {
+    color: rgb(45, 45, 248);
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+.info-block__button {
+    padding: 0.3rem;
+    margin-right: 2px;
+    margin-left: 2px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: 1px solid #000;
+}

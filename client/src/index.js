@@ -14,6 +14,7 @@ import { SurveysPage } from './pages/SurveysPage/SurveysPage';
 import { NotFoundPage } from './pages/NotFoundPage/NotFoundPage';
 import { AdminPage } from './pages/AdminPage/AdminPage';
 import { SurveyPage } from './pages/SurveyPage/SurveyPage';
+import { ResultsPage } from './pages/ResultsPage/ResultsPage';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -25,6 +26,7 @@ root.render(
           <Route path="profile" element={<ProfilePage />} />
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="survey/:surveyID" element={<SurveyPage />} />
+          <Route path="results" element={<ResultsPage />} />
           <Route path="admin" element={<AdminPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>

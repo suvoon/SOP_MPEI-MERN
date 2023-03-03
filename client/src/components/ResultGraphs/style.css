@@ -1,0 +1,10 @@
+.return-btn {
+    position: absolute;
+    left: 80px;
+    top: 0;
+    font-size: 30px;
+}
+
+.return-btn:hover {
+    color: rgb(141, 141, 141);
+}

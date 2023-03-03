@@ -44,6 +44,12 @@ let resultsSchema = new Schema({
 })
 let dbResults = mongoose.model('Results', resultsSchema);
 
+let groupsSchema = new Schema({
+    name: String,
+    students_n: Number
+});
+let dbGroups = mongoose.model('Groups', groupsSchema);
+
 const app = express();
 app.use(cors());
 
@@ -85,6 +91,8 @@ app.post('/login', (req, res) => {
 
 app.get('/surveys', (req, res) => {
 
+    const group = req.query.group === "true" ? true : false;
+
     const auth_header = req.headers.authorization;
     if (!auth_header) res.status(401).send('Unauthorized request');
     else {
@@ -92,11 +100,20 @@ app.get('/surveys', (req, res) => {
 
         jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
             if (err) res.status(401).send('Unauthorized request');
-            const findSurveys = dbSurveys
-                .find({
+
+            const findQuery = group
+                ?
+                {
                     groups: { $in: [user.group] },
                     completed: { $nin: [user.login] }
-                })
+                }
+                :
+                {
+
+                }
+
+            const findSurveys = dbSurveys
+                .find(findQuery)
                 .select({ period: 1, start_date: 1, end_date: 1, link: 1 });
             findSurveys.exec((err, surveys) => {
                 if (err) console.log("FINDING error", err);
@@ -238,26 +255,6 @@ app.post('/admin/user', (req, res) => {
     }
 });
 
-app.get('/admin/survey', (req, res) => {
-
-    const auth_header = req.headers.authorization;
-    if (!auth_header) res.status(401).send('Unauthorized request');
-    else {
-        const accessToken = auth_header.split(' ')[1];
-
-        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
-            if (err) res.status(401).send('Unauthorized request');
-            const findSurveys = dbSurveys
-                .find()
-                .select({ period: 1, start_date: 1, end_date: 1, link: 1 });
-            findSurveys.exec((err, surveys) => {
-                if (err) console.log("FINDING error", err);
-                res.json(surveys);
-            })
-        });
-    }
-});
-
 app.post('/admin/survey', (req, res) => {
 
     let { period, description, start_date, end_date, groups, title, question, qfield } = req.body;
@@ -327,6 +324,70 @@ app.delete('/admin/survey', (req, res) => {
         });
     }
 });
+
+app.get('/groups', (req, res) => {
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                dbGroups.find({},
+                    (err, groups) => {
+                        if (err) console.log("ERROR FINDING GROUPS:", err);
+                        res.send(
+                            groups.map(group => [group.name, group.students_n])
+                        )
+                    }
+                );
+            }
+        });
+    }
+});
+
+app.get('/results/bygroup', (req, res) => {
+    const group = req.query.group;
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err_jwt, user) => {
+            if (err_jwt) res.status(401).send('Unauthorized request');
+            //TODO: ПРОМИСИФИЦИРОВАТЬ ЭТОТ УЖАС
+            else {
+                dbSurveys.find({ groups: group },
+                    (err_s, surveys) => {
+                        s_id = surveys.map(survey => survey.id);
+                        dbResults.find({ survey_id: s_id },
+                            (err_r, results) => {
+
+                                res.send(
+                                    surveys.map(survey => {
+                                        resArr = [];
+                                        while (results[0].survey_id === survey.id) {
+                                            resArr.push(results.shift().questions);
+                                        }
+                                        return {
+                                            surveyName: survey.period,
+                                            surveyQuestions: survey.content.filter(q => q.type !== "title"),
+                                            surveyResults: resArr
+                                        }
+                                    })
+                                )
+
+                            }
+                        )
+                    }
+                );
+            }
+        });
+    }
+})
+
+
 
 app.listen(PORT, () => {
     console.log(`LISTENING TO PORT ${PORT}`);

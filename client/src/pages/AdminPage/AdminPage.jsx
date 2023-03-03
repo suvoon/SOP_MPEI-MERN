@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
+import { SurveysTable } from '../../components/SurveysTable/SurveysTable';
 import './style.css'
 
 export const AdminPage = () => {
@@ -17,35 +18,10 @@ export const AdminPage = () => {
     const [status, setStatus] = useState('');
     const [redirect, setRedirect] = useState(false);
 
-    const [surveys, setSurveys] = useState([]);
     const [createSurvey, setCreateSurvey] = useState(false);
     const [surveyBlocks, setSurveyBlocks] = useState([]);
 
     const token = localStorage.getItem('token');
-
-    const updateSurveys = () => {
-        if (!token) {
-            navigate('/');
-        }
-        else {
-            var myHeaders = new Headers();
-            myHeaders.append("Authorization", `Bearer ${token}`);
-
-            var requestOptions = {
-                headers: myHeaders,
-                method: 'GET',
-            };
-
-            fetch("http://localhost:8000/admin/survey", requestOptions)
-                .then(response => response.json())
-                .then(result => {
-                    setSurveys(result);
-                })
-                .catch(error => { console.log(error) });
-        }
-    }
-
-    useEffect(updateSurveys, [token, navigate]);
 
     useEffect(() => {
         if (redirect) {
@@ -56,33 +32,6 @@ export const AdminPage = () => {
 
     const surveySubmitHandler = function (ev) {
         setRedirect(true);
-    };
-
-    const surveyDeleteHandler = function (id) {
-        if (!token) {
-            navigate('/');
-        }
-        else {
-            let myHeaders = new Headers();
-            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
-            myHeaders.append("Authorization", `Bearer ${token}`);
-
-            let urlencoded = new URLSearchParams();
-            urlencoded.append("surveyID", id);
-
-            var requestOptions = {
-                headers: myHeaders,
-                method: 'DELETE',
-                body: urlencoded
-            };
-
-            fetch("http://localhost:8000/admin/survey", requestOptions)
-                .then(response => {
-                    updateSurveys();
-                    return response.text()
-                })
-                .catch(error => console.log('error', error));
-        }
     };
 
     //TODO: useEffect admin check
@@ -204,14 +153,14 @@ export const AdminPage = () => {
                         {
                             users.map((user, i) => {
                                 return (
-                                    <div class='admin-query__info-block' key={i}>
-                                        <div class='info-block__name underline'>
+                                    <div className='admin-query__info-block' key={i}>
+                                        <div className='info-block__name underline'>
                                             {`${user.name} (${user.login})`}
                                         </div>
-                                        <div class='info-block__delete'>
+                                        <div className='info-block__delete'>
                                             <form action='' method='post'>
-                                                <input type='submit' value='Удалить' name={`delete-user[${user._id}]`} class='info-block__button' />
-                                                <input type='button' value='Редактировать' name='edituser' class='info-block__button info-block__edit' />
+                                                <input type='submit' value='Удалить' name={`delete-user[${user._id}]`} className='info-block__button' />
+                                                <input type='button' value='Редактировать' name='edituser' className='info-block__button info-block__edit' />
                                             </form>
                                         </div>
                                     </div>
@@ -295,50 +244,10 @@ export const AdminPage = () => {
                 className={`tabcontent ${!openTab ? 'active' : ''}`}
                 onClick={() => setOpenTab(false)}
             >
-                <div className="surveys">
-                    <h2>Текущие опросы</h2>
-                    <table className="surveys__table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Период</th>
-                                <th>Дата начала</th>
-                                <th>Дата окончания</th>
-                                <th>Действие</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {
-                                surveys.map((survey, i) => {
-                                    return (
-                                        <tr key={i}>
-                                            <td>{i + 1}</td>
-                                            <td>{survey.period}</td>
-                                            <td>{new Date(survey.start_date).toLocaleDateString()}</td>
-                                            <td>{new Date(survey.end_date).toLocaleDateString()}</td>
-                                            <td>
-                                                <input
-                                                    type='submit'
-                                                    value='Удалить'
-                                                    name={`delete-survey[${survey._id}]`}
-                                                    class='info-block__button'
-                                                    onClick={() => surveyDeleteHandler(survey._id)}
-                                                />
-                                                <input
-                                                    type='button'
-                                                    value='Редактировать'
-                                                    name='edituser'
-                                                    class='info-block__button info-block__edit'
-                                                />
-                                            </td>
-                                        </tr>
-                                    )
-                                })
-
-                            }
-                        </tbody>
-                    </table>
-                </div>
+                <SurveysTable
+                    group={false}
+                    access="admin"
+                />
                 <div className="survey-constructor">
                     <button
                         className={`survey-constructor__create-btn survey-constructor__newsurvey-btn ${createSurvey ? '' : 'active'}`}
@@ -390,19 +299,19 @@ export const AdminPage = () => {
                                                     surveyBlock.map((question, qid) => {
                                                         return (
                                                             <fieldset key={qid}>
-                                                                <div class="question-type">
+                                                                <div className="question-type">
                                                                     <label>Оценка (от 1 до 5): </label>
                                                                     <input type="radio" name={`question[${id}][${qid}]`} value="rating" />
                                                                 </div>
-                                                                <div class="question-type">
+                                                                <div className="question-type">
                                                                     <label>Обязательное поле: </label>
                                                                     <input type="radio" name={`question[${id}][${qid}]`} value="input" />
                                                                 </div>
-                                                                <div class="question-type">
+                                                                <div className="question-type">
                                                                     <label>Необязательное поле: </label>
                                                                     <input type="radio" name={`question[${id}][${qid}]`} value="input_imp" />
                                                                 </div>
-                                                                <textarea class="question-field" name={`qfield[${id}][${qid}]`} cols="30" rows="4" placeholder="Введите вопрос">
+                                                                <textarea className="question-field" name={`qfield[${id}][${qid}]`} cols="30" rows="4" placeholder="Введите вопрос">
 
                                                                 </textarea>
                                                             </fieldset>
