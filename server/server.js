@@ -39,6 +39,7 @@ let dbSurveys = mongoose.model('Survey', surveysSchema);
 
 let resultsSchema = new Schema({
     login: String,
+    group: String,
     survey_id: String,
     questions: Array
 })
@@ -182,6 +183,7 @@ app.post('/survey', (req, res) => {
             dbResults.create(
                 {
                     login: user.login,
+                    group: user.group,
                     survey_id: decodedID,
                     questions: questions
                 },
@@ -258,6 +260,7 @@ app.post('/admin/user', (req, res) => {
 app.post('/admin/survey', (req, res) => {
 
     let { period, description, start_date, end_date, groups, title, question, qfield } = req.body;
+    if (req.body.desc_default) description = "Укажите Вашу оценку учебного курса и преподавателя по указанным характеристикам. Каждая характеристика оценивается по 5-балльной шкале, где 1 - характеристика на очень низком уровне, 5 - характеристика на очень высоком уровне. Если Вы не посещали занятия по курсу или не можете оценить характеристику, отметьте 'Затрудняюсь ответить'";
     groups = groups.replace(/ /g, '').split(",");
 
     let count = 0;
@@ -309,15 +312,22 @@ app.delete('/admin/survey', (req, res) => {
 
     const surveyID = req.body.surveyID;
 
-    const accessToken = req.headers.authorization;
-    if (!accessToken) res.status(401).send('Unauthorized request');
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
     else {
+        const accessToken = auth_header.split(' ')[1];
         jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
             if (err) res.status(401).send('Unauthorized request');
 
             dbSurveys.deleteOne({ _id: surveyID },
                 err => {
-                    if (err) console.log("ERROR CREATING SURVEY:", err);
+                    if (err) console.log("ERROR DELETING SURVEY:", err);
+                }
+            );
+
+            dbResults.deleteMany({ survey_id: surveyID },
+                err => {
+                    if (err) console.log("ERROR DELETING SURVEY:", err);
                 }
             );
 
@@ -363,13 +373,14 @@ app.get('/results/bygroup', (req, res) => {
                         s_id = surveys.map(survey => survey.id);
                         dbResults.find({ survey_id: s_id },
                             (err_r, results) => {
-
                                 res.send(
                                     surveys.map(survey => {
                                         resArr = [];
-                                        while (results[0].survey_id === survey.id) {
-                                            resArr.push(results.shift().questions);
-                                        }
+                                        results.forEach(s_res => {
+                                            if (s_res.survey_id === survey.id) {
+                                                resArr.push(s_res.questions);
+                                            }
+                                        });
                                         return {
                                             surveyName: survey.period,
                                             surveyQuestions: survey.content.filter(q => q.type !== "title"),
@@ -387,6 +398,31 @@ app.get('/results/bygroup', (req, res) => {
     }
 })
 
+app.get('/results/bysurvey', (req, res) => {
+    const survey_query = req.query.survey;
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err_jwt, user) => {
+            if (err_jwt) res.status(401).send('Unauthorized request');
+            //TODO: ПРОМИСИФИЦИРОВАТЬ ЭТОТ УЖАС
+            else {
+                dbSurveys.findOne({ _id: survey_query },
+                    (err_s, survey_db) => {
+                        dbResults.find({ survey_id: survey_query },
+                            (err_r, results) => {
+                                const survey_data = [survey_db.period, survey_db.groups, survey_db.content, survey_db.completed.length];
+                                res.send([survey_data, results.map(result_db => [result_db.questions, result_db.group])]);
+                            }
+                        )
+                    }
+                );
+            }
+        });
+    }
+})
 
 
 app.listen(PORT, () => {

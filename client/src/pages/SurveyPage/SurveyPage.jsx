@@ -108,7 +108,7 @@ export const SurveyPage = () => {
                                             <h3>{field.value}</h3>
                                         </div>
                                         <div className="quiz__block quiz__note">
-                                            <input type="text" className="text" name={field.name} important />
+                                            <input type="text" className="text" name={field.name} important="true" />
                                         </div>
                                     </div>);
                                 default:

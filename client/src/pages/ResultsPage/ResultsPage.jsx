@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Container } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom'
 import { GroupSelector } from '../../components/GroupSelector/GroupSelector';
-import { SurveySelector } from '../../components/SurveySelector/SurveySelector';
-import { ResultGraphs } from '../../components/ResultGraphs/ResultGraphs';
+import { ResultSurveys } from '../../components/ResultSurveys/ResultSurveys';
+import { ResultGroups } from '../../components/ResultGroups/ResultGroups';
 import './style.css'
 
 export const ResultsPage = () => {
@@ -15,14 +15,14 @@ export const ResultsPage = () => {
             <Container>
                 {
                     selectedGroup
-                        ? <ResultGraphs
+                        ? <ResultGroups
                             selectedGroup={selectedGroup}
                             setSelectedGroup={setSelectedGroup}
                         />
                         :
                         selectedSurvey
                             ?
-                            <SurveySelector
+                            <ResultSurveys
                                 selectedSurvey={selectedSurvey}
                                 setSelectedSurvey={setSelectedSurvey}
                             />

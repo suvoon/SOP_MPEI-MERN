@@ -3,6 +3,7 @@
     left: 80px;
     top: 0;
     font-size: 30px;
+    background-color: transparent;
 }
 
 .return-btn:hover {

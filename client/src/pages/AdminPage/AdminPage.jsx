@@ -26,7 +26,7 @@ export const AdminPage = () => {
     useEffect(() => {
         if (redirect) {
             setRedirect(false);
-            navigate('/admin');
+            navigate('/');
         }
     }, [redirect, navigate]);
 
@@ -268,7 +268,7 @@ export const AdminPage = () => {
                                 <div className="title-inputs__block"><label htmlFor="" >Группы:</label><input type="text" name="groups" id="" /></div>
                                 <div className="title-inputs__block">
                                     <label htmlFor="" >Описание:</label><textarea name="description" id="" cols="50" rows="5"></textarea>
-                                    <label htmlFor="" >Описание по умолчанию:</label><input type="checkbox" name="desc-default" id="" />
+                                    <label htmlFor="" >Описание по умолчанию:</label><input type="checkbox" name="desc_default" id="" />
                                 </div>
                             </div>
                             <button
