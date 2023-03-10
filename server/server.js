@@ -215,7 +215,7 @@ app.get('/admin/user', (req, res) => {
                         { login: { $regex: '.*' + query + '.*' } }
                     ]
                 })
-                .select({ name: 1, login: 1, admin: 1 });
+                .select({ name: 1, login: 1, admin: 1, group: 1 });
             findUsers.exec((err, dbuser) => {
                 res.json(dbuser || []);
             })
@@ -251,6 +251,27 @@ app.post('/admin/user', (req, res) => {
                     else {
                         res.send(`Пользователь ${name} успешно создан`);
                     }
+                }
+            );
+        });
+    }
+});
+
+app.delete('/admin/user', (req, res) => {
+
+    const { id, name } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            dbUsers.deleteOne({ _id: id },
+                err => {
+                    if (err) console.log("ERROR DELETING USER:", err)
+                    else res.send(`Пользователь ${name} успешно удалён`);
                 }
             );
         });
@@ -383,7 +404,7 @@ app.get('/results/bygroup', (req, res) => {
                                         });
                                         return {
                                             surveyName: survey.period,
-                                            surveyQuestions: survey.content.filter(q => q.type !== "title"),
+                                            surveyQuestions: survey.content,
                                             surveyResults: resArr
                                         }
                                     })
@@ -413,8 +434,17 @@ app.get('/results/bysurvey', (req, res) => {
                     (err_s, survey_db) => {
                         dbResults.find({ survey_id: survey_query },
                             (err_r, results) => {
-                                const survey_data = [survey_db.period, survey_db.groups, survey_db.content, survey_db.completed.length];
-                                res.send([survey_data, results.map(result_db => [result_db.questions, result_db.group])]);
+                                const survey_data = {
+                                    period: survey_db.period,
+                                    groups: survey_db.groups,
+                                    content: survey_db.content,
+                                    completed: survey_db.completed.length
+                                };
+                                res.send([survey_data, results.map(result_db => ({
+                                    questions: result_db.questions,
+                                    group: result_db.group
+                                })
+                                )]);
                             }
                         )
                     }

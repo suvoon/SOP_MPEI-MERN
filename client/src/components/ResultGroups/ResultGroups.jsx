@@ -62,6 +62,7 @@ export const ResultGroups = ({ selectedGroup, setSelectedGroup }) => {
             </button>
             {
                 data.map((survey, key) => {
+                    let qCounter = 0;
                     return (
                         <section
                             className="survey-section"
@@ -72,64 +73,95 @@ export const ResultGroups = ({ selectedGroup, setSelectedGroup }) => {
                             {
                                 survey.surveyQuestions.map((question, i) => {
                                     let rates = [0, 0, 0, 0, 0];
-                                    if (question.type === 'rating') {
-                                        survey.surveyResults.forEach(surveyRes => {
-                                            if (surveyRes[i] !== 'idk') {
-                                                rates[parseInt(surveyRes[i]) - 1]++;
-                                            }
-                                        });
-
-                                        return (
-                                            <Bar
-                                                key={`${key}-${i}`}
-                                                options={{
-                                                    responsive: true,
-                                                    plugins: {
-                                                        legend: {
-                                                            position: 'top',
-                                                        },
-                                                        title: {
-                                                            display: true,
-                                                            text: question.value,
-                                                        },
-                                                    },
-                                                }}
-                                                data={
-                                                    {
-                                                        labels: ['1', '2', '3', '4', '5'],
-                                                        datasets: [
-                                                            {
-                                                                label: '',
-                                                                data: rates,
-                                                                backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                                                            }
-                                                        ]
-                                                    }
+                                    switch (question.type) {
+                                        case 'title':
+                                            return (
+                                                <h2 key={i}>{question.value}</h2>
+                                            )
+                                        case 'rating':
+                                            survey.surveyResults.forEach(surveyRes => {
+                                                if (surveyRes[qCounter] !== 'idk') {
+                                                    rates[parseInt(surveyRes[qCounter]) - 1]++;
                                                 }
-                                            />
-                                        )
-                                    } else if (question.type === 'input') {
-                                        return (
-                                            <div
-                                                className='section__question'
-                                                key={`${key}-${i}`}
-                                            >
-                                                {`Вопрос: ${question.value}`}
-                                                <br />
-                                                {`Ответы:`}
-                                                {survey.surveyResults.map((surveyRes, s_i) => {
-                                                    if (surveyRes[i].replace(/\s|-/g, '') !== '')
-                                                        return (
-                                                            <div
-                                                                className='section__answer'
-                                                                key={`${key}-${i}-${s_i}`}
-                                                            >
-                                                                {surveyRes[i]}
-                                                            </div>
-                                                        )
-                                                })}
-                                            </div>
-                                        )
+                                            });
+                                            qCounter++;
+                                            return (
+                                                <Bar
+                                                    key={`${key}-${i}`}
+                                                    options={{
+                                                        responsive: true,
+                                                        plugins: {
+                                                            legend: {
+                                                                position: 'top',
+                                                            },
+                                                            title: {
+                                                                display: true,
+                                                                text: question.value,
+                                                            },
+                                                        },
+                                                    }}
+                                                    data={
+                                                        {
+                                                            labels: ['1', '2', '3', '4', '5'],
+                                                            datasets: [
+                                                                {
+                                                                    label: '',
+                                                                    data: rates,
+                                                                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                />
+                                            )
+                                        case 'input':
+                                            qCounter++;
+                                            return (
+                                                <div
+                                                    className='section__question'
+                                                    key={`${key}-${i}`}
+                                                >
+                                                    {`Вопрос: ${question.value}`}
+                                                    <br />
+                                                    {`Ответы:`}
+                                                    {survey.surveyResults.map((surveyRes, s_i) => {
+                                                        if (surveyRes[qCounter - 1].replace(/\s|-/g, '') !== '')
+                                                            return (
+                                                                <div
+                                                                    className='section__answer'
+                                                                    key={`${key}-${i}-${s_i}`}
+                                                                >
+                                                                    {surveyRes[qCounter - 1]}
+                                                                </div>
+                                                            )
+                                                    })}
+                                                </div>
+                                            )
+                                        case 'input_imp':
+                                            qCounter++;
+                                            return (
+                                                <div
+                                                    className='section__question'
+                                                    key={`${key}-${i}`}
+                                                >
+                                                    {`Вопрос: ${question.value}`}
+                                                    <br />
+                                                    {`Ответы:`}
+                                                    {survey.surveyResults.map((surveyRes, s_i) => {
+                                                        if (surveyRes[qCounter - 1].replace(/\s|-/g, '') !== '')
+                                                            return (
+                                                                <div
+                                                                    className='section__answer'
+                                                                    key={`${key}-${i}-${s_i}`}
+                                                                >
+                                                                    {surveyRes[qCounter - 1]}
+                                                                </div>
+                                                            )
+                                                    })}
+                                                </div>
+                                            )
+                                        default:
+                                            return ''
                                     }
                                 }
                                 )

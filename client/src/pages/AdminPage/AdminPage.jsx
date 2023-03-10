@@ -1,6 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom';
 import { SurveysTable } from '../../components/SurveysTable/SurveysTable';
+import {
+    Button,
+    Modal,
+    Form
+} from 'react-bootstrap';
 import './style.css'
 
 export const AdminPage = () => {
@@ -10,12 +15,21 @@ export const AdminPage = () => {
     const [openTab, setOpenTab] = useState(true);
     const [query, setQuery] = useState('');
     const [users, setUsers] = useState([]);
+
     const [userName, setUserName] = useState('');
     const [userLogin, setUserLogin] = useState('');
     const [userPass, setUserPass] = useState('');
     const [userGroup, setUserGroup] = useState('');
     const [userAdmin, setUserAdmin] = useState(false);
+
+    const [userNameModal, setUserNameModal] = useState('');
+    const [userLoginModal, setUserLoginModal] = useState('');
+    const [userPassModal, setUserPassModal] = useState('');
+    const [userGroupModal, setUserGroupModal] = useState('');
+    const [userAdminModal, setUserAdminModal] = useState(false);
+
     const [status, setStatus] = useState('');
+    const [isShowModal, setIsShowModal] = useState(false);
     const [redirect, setRedirect] = useState(false);
 
     const [createSurvey, setCreateSurvey] = useState(false);
@@ -30,14 +44,23 @@ export const AdminPage = () => {
         }
     }, [redirect, navigate]);
 
+    const closeModal = () => setIsShowModal(false);
+    const showModal = (name, login, group, admin) => {
+        setUserNameModal(name);
+        setUserLoginModal(login);
+        setUserGroupModal(group);
+        setUserAdminModal(admin);
+        setIsShowModal(true)
+    };
+
     const surveySubmitHandler = function (ev) {
         setRedirect(true);
     };
 
     //TODO: useEffect admin check
 
-    const searchSubmitHandler = function (ev) {
-        ev.preventDefault();
+    const searchSubmitHandler = function () {
+        console.log('first')
 
         if (!token) {
             navigate('/');
@@ -87,10 +110,72 @@ export const AdminPage = () => {
 
             fetch("http://localhost:8000/admin/user", requestOptions)
                 .then(response => response.text())
-                .then(result => setStatus(result))
+                .then(result => {
+                    setStatus(result)
+                })
                 .catch(error => console.log('error', error));
         }
 
+    }
+
+    const userDeleteHandler = function (id, name) {
+
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("id", id);
+            urlencoded.append("name", name);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'DELETE',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/admin/user", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    setStatus(result);
+                    searchSubmitHandler();
+                })
+                .catch(error => console.log('error', error));
+        }
+    }
+
+    const userUpdateHandler = function () {
+
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            // urlencoded.append("id", id);
+            // urlencoded.append("name", name);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'UPDATE',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/admin/user", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    setStatus(result);
+                    searchSubmitHandler();
+                })
+                .catch(error => console.log('error', error));
+        }
     }
 
     const createSurveyBlock = function () {
@@ -105,6 +190,67 @@ export const AdminPage = () => {
 
     return (
         <>
+
+            <Modal show={isShowModal} onHide={closeModal}>
+                <Modal.Header closeButton>
+                    <Modal.Title>Редактировать</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body>
+                    <Form>
+
+                        <Form.Group className="mb-3" controlId="formBasicName">
+                            <Form.Label>Имя</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="name"
+                                placeholder="Имя"
+                                value={userNameModal}
+                                onChange={ev => setUserNameModal(ev.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="formBasicLogin">
+                            <Form.Label>Логин</Form.Label>
+                            <Form.Control
+                                type="text"
+                                name="login"
+                                placeholder="Логин"
+                                value={userLoginModal}
+                                onChange={ev => setUserLoginModal(ev.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                            <Form.Label>Пароль</Form.Label>
+                            <Form.Control
+                                type="password"
+                                placeholder="Новый пароль"
+                                name="password"
+                                value={userPassModal}
+                                onChange={ev => setUserPassModal(ev.target.value)}
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="formBasicGroup">
+                            <Form.Label>Группа</Form.Label>
+                            <Form.Control
+                                type="group"
+                                placeholder="Группа"
+                                name="group"
+                                value={userGroupModal}
+                                onChange={ev => setUserGroupModal(ev.target.value)}
+                            />
+                        </Form.Group>
+
+                    </Form>
+                </Modal.Body>
+
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={closeModal}>Закрыть</Button>
+                    <Button variant="primary" onClick={() => { userUpdateHandler() }}>Редактировать</Button>
+                </Modal.Footer>
+            </Modal>
 
             <div className="tab">
                 <button
@@ -140,11 +286,11 @@ export const AdminPage = () => {
                                 onChange={ev => setQuery(ev.target.value)}
                             />
                             <input
-                                type="submit"
+                                type="button"
                                 name="admin-usersubmit"
                                 value="Найти"
                                 className="admin-querybtn"
-                                onClick={searchSubmitHandler}
+                                onClick={() => { searchSubmitHandler() }}
                             />
                         </form>
                     </div>
@@ -152,6 +298,7 @@ export const AdminPage = () => {
                     <div className="admin-query">
                         {
                             users.map((user, i) => {
+                                console.log(user)
                                 return (
                                     <div className='admin-query__info-block' key={i}>
                                         <div className='info-block__name underline'>
@@ -159,8 +306,20 @@ export const AdminPage = () => {
                                         </div>
                                         <div className='info-block__delete'>
                                             <form action='' method='post'>
-                                                <input type='submit' value='Удалить' name={`delete-user[${user._id}]`} className='info-block__button' />
-                                                <input type='button' value='Редактировать' name='edituser' className='info-block__button info-block__edit' />
+                                                <input
+                                                    type='button'
+                                                    value='Удалить'
+                                                    name={`delete-user[${user._id}]`}
+                                                    className='info-block__button'
+                                                    onClick={() => { userDeleteHandler(user._id, user.name) }}
+                                                />
+                                                <input
+                                                    type='button'
+                                                    value='Редактировать'
+                                                    name='edituser'
+                                                    className='info-block__button info-block__edit'
+                                                    onClick={() => { showModal(user.name, user.login, user.group, user.admin) }}
+                                                />
                                             </form>
                                         </div>
                                     </div>
