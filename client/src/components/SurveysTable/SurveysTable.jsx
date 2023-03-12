@@ -32,7 +32,7 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
         }
     }
 
-    useEffect(updateSurveys, [token, navigate]);
+    useEffect(updateSurveys, [token, navigate, group]);
 
     const surveyDeleteHandler = function (id) {
         if (!token) {
@@ -53,9 +53,9 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
             };
 
             fetch("http://localhost:8000/admin/survey", requestOptions)
-                .then(response => {
+                .then(response => response.text())
+                .then(result => {
                     updateSurveys();
-                    return response.text()
                 })
                 .catch(error => console.log('error', error));
         }

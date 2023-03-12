@@ -1,0 +1,34 @@
+.search-block {
+    display: flex;
+    height: 50px;
+    padding: 5px 0px;
+    margin-bottom: 20px;
+}
+
+.search-block button {
+    height: 40px;
+    background-color: transparent;
+    margin-right: 10px;
+}
+
+.search-block input {
+    padding: 0px 10px;
+    width: 500px;
+    border-radius: 2px;
+}
+
+.filters-block {
+    display: flex;
+}
+
+.category__dropdown {
+    display: none;
+}
+
+.category__dropdown span:hover {
+    cursor: pointer;
+}
+
+.filters__sortby {
+    display: flex;
+}

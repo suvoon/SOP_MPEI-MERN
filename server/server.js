@@ -352,6 +352,8 @@ app.delete('/admin/survey', (req, res) => {
                 }
             );
 
+            res.send(`Опрос ${surveyID} успешно удалён`);
+
         });
     }
 });
