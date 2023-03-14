@@ -1,0 +1,44 @@
+.forum {
+    width: 750px;
+    margin-top: 0.5rem;
+}
+
+.forum__headline {
+    font-size: 2.2rem;
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+.forum__post {
+    margin-bottom: 20px;
+}
+
+.post__data {
+    color: #4538cc;
+}
+
+.post__description {
+    margin-top: 10px;
+}
+
+.forum__reply-field {
+    margin-bottom: 10px;
+}
+
+.forum__comment-number {
+    font-weight: bold;
+    font-size: 1.4rem;
+}
+
+.forum__comments-block {
+    margin-top: 15px;
+}
+
+.comments-block__item {
+    position: relative;
+    padding: 7px 15px;
+    border: 1px solid #000;
+    margin-bottom: 15px;
+}

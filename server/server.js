@@ -12,7 +12,6 @@ mongoose.connect("mongodb://localhost:27017/sop_db",
     { useNewUrlParser: true, useUnifiedTopology: true });
 let Schema = mongoose.Schema;
 let userSchema = new Schema({
-    uid: String,
     name: String,
     login: String,
     password: String,
@@ -25,7 +24,6 @@ let userSchema = new Schema({
 let dbUsers = mongoose.model('User', userSchema);
 
 let surveysSchema = new Schema({
-    oid: String,
     period: String,
     description: String,
     start_date: Date,
@@ -54,9 +52,12 @@ let dbGroups = mongoose.model('Groups', groupsSchema);
 let topicsSchema = new Schema({
     headline: String,
     description: String,
+    category: String,
+    link: String,
     date: Date,
     author: String,
-    author_id: String
+    author_id: String,
+    comments: Number
 });
 let dbTopics = mongoose.model('Topics', topicsSchema);
 
@@ -89,7 +90,8 @@ app.post('/login', (req, res) => {
             const tokenData = {
                 id: docs[0]._id,
                 login: docs[0].login,
-                group: docs[0].group
+                group: docs[0].group,
+                name: docs[0].name
             }
             const newToken = jwt.sign(tokenData, process.env.JWT_SECRET);
 
@@ -476,7 +478,7 @@ app.get('/results/bysurvey', (req, res) => {
 
 app.get('/forums', (req, res) => {
 
-    const { query, category, sortby } = req.body;
+    const { topicsquery, category, sortby } = req.query;
 
     const auth_header = req.headers.authorization;
     if (!auth_header) res.status(401).send('Unauthorized request');
@@ -486,17 +488,149 @@ app.get('/forums', (req, res) => {
         jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
             if (err) res.status(401).send('Unauthorized request');
             else {
-                dbTopics.find({
-                    //PARAMS
-                },
-                    (err, topics) => {
-                        if (err) console.log("ERROR FINDING GROUPS:", err);
-                        res.send(
+                const searchQuery = {
+                    'headline': { $regex: topicsquery, $options: "i" }
+                };
+                category !== 'All' ? searchQuery['category'] = category : true;
+                let sortQuery;
+                switch (sortby) {
+                    case 'Relevant':
+                        sortQuery = { comments: 1 }
+                        break;
+                    case 'Latest':
+                        sortQuery = { date: -1 }
+                        break;
+                    default:
+                        sortQuery = { category: 1 }
+                }
 
-                        )
-                    }
-                );
+                const findTopics = dbTopics
+                    .find(searchQuery)
+                    .sort(sortQuery)
+                    .select({ headline: 1, category: 1, comments: 1, link: 1 });
+                findTopics.exec((err, topics) => {
+                    if (err) console.log("ERROR FINDING TOPICS:", err);
+                    res.send(
+                        topics ?? []
+                    )
+                })
             }
+        });
+    }
+});
+
+app.post('/forums', (req, res) => {
+
+    let { headline, description, category } = req.body;
+    description = description.slice(0, 200);
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+
+            const _id = mongoose.Types.ObjectId();
+            const link = encodeID.encode(_id.valueOf());
+            dbTopics.create(
+                {
+                    _id,
+                    headline,
+                    description,
+                    category,
+                    link,
+                    date: new Date(),
+                    author: user.name,
+                    author_id: user.id,
+                    comments: 0,
+                },
+                err => {
+                    if (err) console.log("ERROR CREATING TOPIC:", err);
+                    else {
+                        res.send('OK');
+                        //res.redirect(`localhost:3000/`);
+                    }
+                }
+            );
+
+        });
+    }
+});
+
+app.get('/forum', (req, res) => {
+
+    const forumID = req.query.forumID;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            const decodedID = encodeID.decode(forumID);
+            const findTopic = dbTopics
+                .find({
+                    _id: decodedID
+                })
+                .select({ headline: 1, description: 1, date: 1, author: 1, comments: 1 });
+            findTopic.exec((err, topics) => {
+                if (err) res.status(404).send('forum not found');
+                else {
+                    const findComments = dbComments
+                        .find({
+                            topic_id: decodedID
+                        })
+                        .select({ text: 1, date: 1, author: 1, author_id: 1 });
+                    findComments.exec((err, comments) => {
+                        res.json({
+                            topic: topics[0],
+                            comments
+                        });
+                    });
+                }
+            })
+        });
+    }
+});
+
+app.post('/forum', (req, res) => {
+
+    let { reply, forum_id } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+
+            const decodedID = encodeID.decode(forum_id);
+            dbComments.create(
+                {
+                    topic_id: decodedID,
+                    text: reply,
+                    date: new Date(),
+                    author: user.name,
+                    author_id: user.id
+                },
+                err => {
+                    if (err) console.log("ERROR CREATING COMMENT:", err);
+                    else {
+                        dbTopics
+                            .updateOne(
+                                { _id: decodedID },
+                                { $inc: { comments: 1 } },
+                            )
+                            .exec(err => { if (err) console.log('ERROR INCREMENTING COMMENTS') }
+                            );
+                        res.send('OK');
+                        //res.redirect(`localhost:3000/`);
+                    }
+                }
+            );
+
         });
     }
 });

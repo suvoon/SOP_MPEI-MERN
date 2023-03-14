@@ -1,22 +1,34 @@
 import './style.css'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
     Button,
     Modal,
-    Form
+    Form,
 } from 'react-bootstrap';
 
 export const ForumsPage = () => {
 
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
+
+    const categoryDict = {
+        Important: "Важное",
+        Question: "Вопрос",
+        Discussion: "Обсуждение"
+    }
+
     const [dropdown, setDropdown] = useState(false);
     const [query, setQuery] = useState('');
     const [topics, setTopics] = useState([]);
     const [sortBy, setSortBy] = useState('Default');
     const [category, setCategory] = useState('All');
     const [isShowModal, setIsShowModal] = useState(false);
+    const [status, setStatus] = useState('');
+
+    const [headline, setHeadline] = useState('');
+    const [description, setDescription] = useState('');
+    const [createCategory, setCreateCategory] = useState('Discussion');
 
     const closeModal = () => setIsShowModal(false);
     const showModal = () => {
@@ -36,7 +48,7 @@ export const ForumsPage = () => {
                 method: 'GET',
             };
 
-            fetch(`http://localhost:8000/forums?query=${query}&category=${category}&sortby=${sortBy}`,
+            fetch(`http://localhost:8000/forums?topicsquery=${query}&category=${category}&sortby=${sortBy}`,
                 requestOptions)
                 .then(response => response.json())
                 .then(result => {
@@ -47,8 +59,42 @@ export const ForumsPage = () => {
     };
 
     useEffect(() => {
+        updateTopics();
+    }, [category, sortBy]);
 
-    }, [category, sortBy])
+    const createTopicHandler = function () {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("headline", headline);
+            urlencoded.append("description", description);
+            urlencoded.append("category", createCategory);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'POST',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/forums", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    setStatus(result);
+                    updateTopics();
+                    closeModal();
+                    setHeadline('');
+                    setDescription('');
+                    setCreateCategory('');
+                })
+                .catch(error => console.log('error', error));
+        }
+    };
 
     return (
         <>
@@ -60,26 +106,46 @@ export const ForumsPage = () => {
                 <Modal.Body>
                     <Form>
 
-                        <Form.Group className="mb-3" controlId="formBasicPassword">
+                        <Form.Group className="mb-3" controlId="formBasicHeadline">
                             <Form.Label>Тема</Form.Label>
                             <Form.Control
-                                type="password"
-                                placeholder="Новый пароль"
-                                name="password"
-                                value={''}
-                                onChange={ev => { }}
+                                required
+                                type="headline"
+                                placeholder="Тема обсуждения"
+                                name="headline"
+                                value={headline}
+                                onChange={ev => { setHeadline(ev.target.value) }}
                             />
                         </Form.Group>
 
-                        <Form.Group className="mb-3" controlId="formBasicGroup">
+                        <Form.Group className="mb-3" controlId="formBasicDescription">
                             <Form.Label>Описание</Form.Label>
                             <Form.Control
-                                type="group"
-                                placeholder="Группа"
-                                name="group"
-                                value={''}
-                                onChange={ev => { }}
+                                required
+                                as="textarea"
+                                type="description"
+                                placeholder="Описание"
+                                name="description"
+                                value={description}
+                                onChange={ev => { setDescription(ev.target.value) }}
                             />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="formBasicDescription">
+                            <Form.Label>Категория</Form.Label>
+                            <Form.Select
+                                required
+                                aria-label="Категория"
+                                type="description"
+                                placeholder="Описание"
+                                name="description"
+                                value={createCategory}
+                                onChange={ev => { setCreateCategory(ev.target.value) }}
+                            >
+                                <option value="Important">Важное</option>
+                                <option value="Question">Вопрос</option>
+                                <option value="Discussion">Обсуждение</option>
+                            </Form.Select>
                         </Form.Group>
 
                     </Form>
@@ -87,7 +153,7 @@ export const ForumsPage = () => {
 
                 <Modal.Footer>
                     <Button variant="secondary" onClick={closeModal}>Закрыть</Button>
-                    <Button variant="primary" onClick={() => { }}>Создать</Button>
+                    <Button variant="primary" onClick={() => { createTopicHandler() }}>Создать</Button>
                 </Modal.Footer>
             </Modal>
             <form
@@ -169,8 +235,8 @@ export const ForumsPage = () => {
                     <li>
                         <button
                             type="button"
-                            className={sortBy === 'Active' ? 'active' : ''}
-                            onClick={() => { setSortBy('Active') }}
+                            className={sortBy === 'Relevant' ? 'active' : ''}
+                            onClick={() => { setSortBy('Relevant') }}
                         >
                             Активные
                         </button>
@@ -201,11 +267,24 @@ export const ForumsPage = () => {
                     </tr>
                 </thead>
                 <tbody>
-                    <tr className='forums-table__row'>
-                        <td>Правила форумов</td>
-                        <td>Важное</td>
-                        <td>77</td>
-                    </tr>
+                    {
+                        topics.map((topic, i) => {
+                            return (
+                                <tr className='forums-table__row' key={i}>
+                                    <td>
+                                        <Link
+                                            to={`/forum/${topic.link}`}
+                                            className='topic-link'
+                                        >
+                                            {topic.headline.slice(0, 100)}
+                                        </Link>
+                                    </td>
+                                    <td>{categoryDict[topic.category]}</td>
+                                    <td>{topic.comments}</td>
+                                </tr>
+                            )
+                        })
+                    }
                 </tbody>
 
             </table>
