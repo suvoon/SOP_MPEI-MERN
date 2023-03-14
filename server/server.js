@@ -51,6 +51,24 @@ let groupsSchema = new Schema({
 });
 let dbGroups = mongoose.model('Groups', groupsSchema);
 
+let topicsSchema = new Schema({
+    headline: String,
+    description: String,
+    date: Date,
+    author: String,
+    author_id: String
+});
+let dbTopics = mongoose.model('Topics', topicsSchema);
+
+let commentsSchema = new Schema({
+    topic_id: String,
+    text: String,
+    date: Date,
+    author: String,
+    author_id: String
+});
+let dbComments = mongoose.model('Comments', commentsSchema);
+
 const app = express();
 app.use(cors());
 
@@ -454,7 +472,34 @@ app.get('/results/bysurvey', (req, res) => {
             }
         });
     }
-})
+});
+
+app.get('/forums', (req, res) => {
+
+    const { query, category, sortby } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                dbTopics.find({
+                    //PARAMS
+                },
+                    (err, topics) => {
+                        if (err) console.log("ERROR FINDING GROUPS:", err);
+                        res.send(
+
+                        )
+                    }
+                );
+            }
+        });
+    }
+});
 
 
 app.listen(PORT, () => {
