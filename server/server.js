@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const cors = require('cors');
+const replaceDisallowedWords = require('disallowed-word-filter')
+const crypto = require('crypto');
 const encodeID = require('encodeID')();
 
 const PORT = process.env.port || 8000;
@@ -16,6 +18,7 @@ let userSchema = new Schema({
     login: String,
     password: String,
     salt: String,
+    iterations: Number,
     token: String,
     admin: Boolean,
     group: String,
@@ -80,32 +83,42 @@ app.post('/login', (req, res) => {
     const login = req.body.login;
     const password = req.body.password;
 
-    dbUsers.find({ login, password }, (err, docs) => {
+    dbUsers.find({ login }, (err, docs) => {
         //console.log(docs, err);
 
         if (err || !docs[0]) {
             console.log("NOT FOUND");
             res.status(404).send({ errors: "error" });
         } else {
-            const tokenData = {
-                id: docs[0]._id,
-                login: docs[0].login,
-                group: docs[0].group,
-                name: docs[0].name
+            let passwordAttempt;
+            crypto.pbkdf2(password, docs[0].salt, docs[0].iterations, 64, 'sha512',
+                (err, derivedKey) => {
+                    passwordAttempt = derivedKey.toString('hex');
+                });
+            if (docs[0].password == passwordAttempt) {
+                const tokenData = {
+                    id: docs[0]._id,
+                    login: docs[0].login,
+                    group: docs[0].group,
+                    name: docs[0].name
+                }
+                const newToken = jwt.sign(tokenData, process.env.JWT_SECRET);
+
+                dbUsers.updateOne({ login: login }, { token: newToken }, err => {
+                    if (err) console.log("ERROR UPDATING USER TOKEN:", err);
+                });
+
+                docs[0].token = newToken;
+                res.json({
+                    name: docs[0].name,
+                    token: docs[0].token,
+                    admin: docs[0].admin,
+                    desc: docs[0].description
+                });
+            } else {
+                res.status(404).send({ errors: "error" });
             }
-            const newToken = jwt.sign(tokenData, process.env.JWT_SECRET);
 
-            dbUsers.updateOne({ login: login }, { token: newToken }, err => {
-                if (err) console.log("ERROR UPDATING USER TOKEN:", err);
-            });
-
-            docs[0].token = newToken;
-            res.json({
-                name: docs[0].name,
-                token: docs[0].token,
-                admin: docs[0].admin,
-                desc: docs[0].description
-            });
         }
     });
 });
@@ -135,7 +148,7 @@ app.get('/surveys', (req, res) => {
 
             const findSurveys = dbSurveys
                 .find(findQuery)
-                .select({ period: 1, start_date: 1, end_date: 1, link: 1 });
+                .select({ period: 1, start_date: 1, end_date: 1, link: 1, description: 1 });
             findSurveys.exec((err, surveys) => {
                 if (err) console.log("FINDING error", err);
                 res.json(surveys);
@@ -254,25 +267,81 @@ app.post('/admin/user', (req, res) => {
 
         jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
             if (err) res.status(401).send('Unauthorized request');
+            else {
+                let salt = crypto.randomBytes(128).toString('base64');
+                let iterations = 10000;
+                let hash;
+                crypto.pbkdf2(password, salt, iterations, 64, 'sha512', (err, derivedKey) => {
+                    hash = derivedKey.toString('hex');
+                });
 
-            dbUsers.create(
-                {
-                    name,
-                    login,
-                    password,
-                    salt: '',
-                    token: '',
-                    admin,
-                    group,
-                    description: 'Пользователь'
-                },
-                err => {
-                    if (err) console.log("ERROR CREATING USER:", err);
-                    else {
-                        res.send(`Пользователь ${name} успешно создан`);
+                dbUsers.create(
+                    {
+                        name,
+                        login,
+                        password: hash,
+                        salt: salt,
+                        iterations,
+                        token: '',
+                        admin,
+                        group,
+                        description: 'Пользователь'
+                    },
+                    err => {
+                        if (err) console.log("ERROR CREATING USER:", err);
+                        else {
+                            res.send(`Пользователь ${name} успешно создан`);
+                        }
                     }
+                );
+            }
+
+        });
+    }
+});
+
+app.put('/admin/user', (req, res) => {
+
+    const { name, login, password, group, admin, userID } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                let updatedUser = {
+                    name: name || 'NONAME',
+                    login: login || Math.random(5000),
+                    admin,
+                    group
+                };
+                if (password !== '') {
+                    let salt = crypto.randomBytes(128).toString('base64');
+                    let iterations = 10000;
+                    let hash;
+                    crypto.pbkdf2(password, salt, iterations, 64, 'sha512', (err, derivedKey) => {
+                        hash = derivedKey.toString('hex');
+                    });
+                    updatedUser['salt'] = salt;
+                    updatedUser['iterations'] = iterations;
+                    updatedUser['password'] = hash;
                 }
-            );
+
+                dbUsers.updateOne(
+                    { _id: userID },
+                    updatedUser,
+                    err => {
+                        if (err) console.log("ERROR UPDATING USER:", err);
+                        else {
+                            res.send(`Пользователь ${name} успешно обновлён`);
+                        }
+                    }
+                );
+            }
+
         });
     }
 });
@@ -373,6 +442,41 @@ app.delete('/admin/survey', (req, res) => {
             );
 
             res.send(`Опрос ${surveyID} успешно удалён`);
+
+        });
+    }
+});
+
+app.put('/admin/survey', (req, res) => {
+
+    const { period, startdate, enddate, description, surveyID } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                let updatedSurvey = {
+                    period,
+                    description,
+                    start_date: new Date(startdate),
+                    end_date: new Date(enddate)
+                };
+
+                dbSurveys.updateOne(
+                    { _id: surveyID },
+                    updatedSurvey,
+                    err => {
+                        if (err) console.log("ERROR UPDATING SURVEY:", err);
+                        else {
+                            res.send(`Опрос ${period} успешно обновлён`);
+                        }
+                    }
+                );
+            }
 
         });
     }
@@ -522,41 +626,60 @@ app.get('/forums', (req, res) => {
 app.post('/forums', (req, res) => {
 
     let { headline, description, category } = req.body;
+    switch (category) {
+        case 'Important':
+            category = 0;
+            break;
+        case 'Question':
+            category = 1;
+            break;
+        default:
+            category = 2;
+    }
     description = description.slice(0, 200);
     headline = headline.slice(0, 100);
+    const myFilter = new replaceDisallowedWords({
+        additionalWords: 'ъзъ'
+    });
 
-    const auth_header = req.headers.authorization;
-    if (!auth_header) res.status(401).send('Unauthorized request');
+    if (headline.length < 4) res.send('Слишком короткое название темы')
+    else if (description.length < 10) res.send('Слишком короткое описание вопроса')
+    else if (myFilter.check(headline, true) || myFilter.check(description, true)) res.send('Тема/заголовок содержит недопустимые слова')
     else {
-        const accessToken = auth_header.split(' ')[1];
-        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
-            if (err) res.status(401).send('Unauthorized request');
+        const auth_header = req.headers.authorization;
+        if (!auth_header) res.status(401).send('Unauthorized request');
+        else {
+            const accessToken = auth_header.split(' ')[1];
+            jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+                if (err) res.status(401).send('Unauthorized request');
 
-            const _id = mongoose.Types.ObjectId();
-            const link = encodeID.encode(_id.valueOf());
-            dbTopics.create(
-                {
-                    _id,
-                    headline,
-                    description,
-                    category,
-                    link,
-                    date: new Date(),
-                    author: user.name,
-                    author_id: user.id,
-                    comments: 0,
-                },
-                err => {
-                    if (err) console.log("ERROR CREATING TOPIC:", err);
-                    else {
-                        res.send('OK');
-                        //res.redirect(`localhost:3000/`);
+                const _id = mongoose.Types.ObjectId();
+                const link = encodeID.encode(_id.valueOf());
+                dbTopics.create(
+                    {
+                        _id,
+                        headline,
+                        description,
+                        category,
+                        link,
+                        date: new Date(),
+                        author: user.name,
+                        author_id: user.id,
+                        comments: 0,
+                    },
+                    err => {
+                        if (err) console.log("ERROR CREATING TOPIC:", err);
+                        else {
+                            res.send('Обсуждение успешно создано');
+                            //res.redirect(`localhost:3000/`);
+                        }
                     }
-                }
-            );
+                );
 
-        });
+            });
+        }
     }
+
 });
 
 app.get('/forum', (req, res) => {
@@ -596,10 +719,9 @@ app.get('/forum', (req, res) => {
     }
 });
 
-app.post('/forum', (req, res) => {
+app.delete('/forums', (req, res) => {
 
-    let { reply, forum_id } = req.body;
-    reply = reply.slice(0, 200);
+    let { forum_id } = req.body;
 
     const auth_header = req.headers.authorization;
     if (!auth_header) res.status(401).send('Unauthorized request');
@@ -607,31 +729,129 @@ app.post('/forum', (req, res) => {
         const accessToken = auth_header.split(' ')[1];
         jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
             if (err) res.status(401).send('Unauthorized request');
+            else {
+                const decodedID = encodeID.decode(forum_id);
+                dbUsers.find({ _id: user.id }, (err, docs) => {
+                    //console.log(docs, err);
 
-            const decodedID = encodeID.decode(forum_id);
-            dbComments.create(
-                {
-                    topic_id: decodedID,
-                    text: reply,
-                    date: new Date(),
-                    author: user.name,
-                    author_id: user.id
-                },
-                err => {
-                    if (err) console.log("ERROR CREATING COMMENT:", err);
-                    else {
-                        dbTopics
-                            .updateOne(
-                                { _id: decodedID },
-                                { $inc: { comments: 1 } },
-                            )
-                            .exec(err => { if (err) console.log('ERROR INCREMENTING COMMENTS') }
-                            );
-                        res.send('OK');
-                        //res.redirect(`localhost:3000/`);
+                    if (err || !docs[0] || !docs[0].admin) {
+                        console.log("NOT FOUND");
+                        res.status(404).send({ errors: "error" });
+                    } else {
+                        dbTopics.deleteOne({ _id: decodedID },
+                            err => {
+                                if (err) console.log("ERROR DELETING FORUM:", err);
+                            }
+                        );
+
+                        dbComments.deleteMany({ topic_id: decodedID },
+                            err => {
+                                if (err) console.log("ERROR DELETING COMMENTS:", err);
+                                else {
+                                    res.send("OK");
+                                }
+                            }
+                        );
                     }
+                });
+            }
+
+
+
+        });
+    }
+});
+
+app.post('/forum', (req, res) => {
+
+    let { reply, forum_id } = req.body;
+    reply = reply.slice(0, 200);
+
+    const myFilter = new replaceDisallowedWords({
+        additionalWords: 'ъзъ'
+    });
+    if (reply.length < 4) res.send('Слишком короткое сообщение')
+    else if (myFilter.check(reply, true)) res.send('Сообщение содержит недопустимые слова')
+    else {
+        const auth_header = req.headers.authorization;
+        if (!auth_header) res.status(401).send('Unauthorized request');
+        else {
+            const accessToken = auth_header.split(' ')[1];
+            jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+                if (err) res.status(401).send('Unauthorized request');
+                else {
+                    const decodedID = encodeID.decode(forum_id);
+                    dbComments.create(
+                        {
+                            topic_id: decodedID,
+                            text: reply,
+                            date: new Date(),
+                            author: user.name,
+                            author_id: user.id
+                        },
+                        err => {
+                            if (err) console.log("ERROR CREATING COMMENT:", err);
+                            else {
+                                dbTopics
+                                    .updateOne(
+                                        { _id: decodedID },
+                                        { $inc: { comments: 1 } },
+                                    )
+                                    .exec(err => { if (err) console.log('ERROR INCREMENTING COMMENTS') }
+                                    );
+                                res.send('');
+                                //res.redirect(`localhost:3000/`);
+                            }
+                        }
+                    );
                 }
-            );
+
+
+            });
+        }
+    }
+
+});
+
+app.delete('/forum', (req, res) => {
+
+    let { comment_id, forum_id } = req.body;
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                const decodedID = encodeID.decode(forum_id);
+                dbUsers.find({ _id: user.id }, (err, docs) => {
+                    //console.log(docs, err);
+
+                    if (err || !docs[0] || !docs[0].admin) {
+                        console.log("NOT FOUND");
+                        res.status(404).send({ errors: "error" });
+                    } else {
+                        dbComments.deleteOne({ _id: comment_id },
+                            err => {
+                                if (err) console.log("ERROR DELETING COMMENT:", err);
+                                else {
+                                    dbTopics
+                                        .updateOne(
+                                            { _id: decodedID },
+                                            { $inc: { comments: -1 } },
+                                        )
+                                        .exec(err => {
+                                            if (err) console.log('ERROR DECREMENTING COMMENTS', err)
+                                            else res.send('OK');
+                                        }
+                                        );
+                                }
+                            }
+                        );
+                    }
+                });
+            }
 
         });
     }

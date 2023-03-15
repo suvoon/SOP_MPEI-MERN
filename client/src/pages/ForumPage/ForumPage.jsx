@@ -15,6 +15,7 @@ export const ForumPage = () => {
     const [forumData, setForumData] = useState({});
     const [replyText, setReplyText] = useState('');
     const [ifAdmin, setIfAdmin] = useState(false);
+    const [status, setStatus] = useState('');
 
     const updateData = function () {
         if (!token) {
@@ -85,6 +86,62 @@ export const ForumPage = () => {
                 .then(response => response.text())
                 .then(result => {
                     updateData();
+                    setStatus(result);
+                })
+                .catch(error => console.log('error', error));
+        }
+    }
+
+    const topicDeleteHandler = function () {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("forum_id", forumID);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'DELETE',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/forums", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    navigate('/forums');
+                })
+                .catch(error => console.log('error', error));
+        }
+    }
+
+    const commentDeleteHandler = function (commentID) {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            let myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/x-www-form-urlencoded");
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            let urlencoded = new URLSearchParams();
+            urlencoded.append("comment_id", commentID);
+            urlencoded.append("forum_id", forumID);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'DELETE',
+                body: urlencoded
+            };
+
+            fetch("http://localhost:8000/forum", requestOptions)
+                .then(response => response.text())
+                .then(result => {
+                    updateData();
                     //setStatus(result);
                 })
                 .catch(error => console.log('error', error));
@@ -98,7 +155,10 @@ export const ForumPage = () => {
                 {ifAdmin
                     ?
                     <>
-                        <button className='forum__delete'>
+                        <button
+                            className='forum__delete'
+                            onClick={() => { topicDeleteHandler() }}
+                        >
                             <div className="delete__stroke-1"></div>
                             <div className="delete__stroke-2"></div>
                         </button>
@@ -134,16 +194,32 @@ export const ForumPage = () => {
                 </Form.Group>
 
             </Form>
-
+            <div className={'forum__error-message error'}>{status}</div>
             <div className="forum__comment-number">
                 {`${forumData?.topic?.comments} комментариев`}
             </div>
 
             <div className="forum__comments-block">
                 {
-                    forumData.comments?.map(comment => {
+                    forumData.comments?.map((comment, i) => {
                         return (
-                            <div className='comments-block__item'>
+                            <div className='comments-block__item' key={i}>
+                                {ifAdmin
+                                    ?
+                                    <>
+                                        <button
+                                            className='comments-block__delete'
+                                            onClick={() => { commentDeleteHandler(comment._id) }}
+
+                                        >
+                                            <div className="delete__stroke-1"></div>
+                                            <div className="delete__stroke-2"></div>
+                                        </button>
+                                        <div className="comments-block__warning">
+                                            Удалить комментарий
+                                        </div>
+                                    </>
+                                    : ''}
                                 <span className="comments-block__author">{comment.author}</span>
                                 <span className="comments-block__date">{comment.date.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$2.$3.$1")}</span>
                                 <div className="comments-block__text">{comment.text}</div>

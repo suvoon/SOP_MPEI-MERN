@@ -58,7 +58,7 @@
     top: 35px;
     left: 0px;
     padding: 10px 5px;
-    background-color: rgba(234, 123, 77, 0.5);
+    background-color: rgba(247, 101, 101, 0.5);
 }
 
 .category__dropdown_visible {
@@ -81,7 +81,7 @@
 }
 
 .category__dropdown button.active {
-    background-color: rgb(189, 189, 189);
+    background-color: #fff;
 }
 
 .category__dropdown button:hover {
@@ -150,4 +150,29 @@
     margin-left: 15px;
     color: #000 !important;
     text-decoration: none;
+}
+
+.background-0>td:nth-child(2) {
+    background-color: rgba(255, 75, 52, 0.25);
+}
+
+.background-1>td:nth-child(2) {
+    background-color: rgba(248, 162, 49, 0.25);
+}
+
+.background-2>td:nth-child(2) {
+    background-color: rgba(248, 235, 49, 0.25);
+}
+
+.forum__error-message {
+    width: 100%;
+    height: 2.3rem;
+    font-size: 1.3rem;
+    text-align: center;
+    padding-bottom: 1rem;
+    color: #238318;
+}
+
+.forum__error-message.error {
+    color: #e74c4c;
 }

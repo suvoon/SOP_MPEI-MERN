@@ -18,6 +18,7 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
     const token = localStorage.getItem('token');
     const [data, setData] = useState([['']]);
     let qCounter = 0;
+    let groupColors = [];
 
     useEffect(() => {
         if (!token) {
@@ -43,7 +44,9 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
         }
     }, [token, navigate]);
 
-    useEffect(() => { qCounter = 0 }, [data]);
+    useEffect(() => {
+        qCounter = 0;
+    }, [data]);
 
     ChartJS.register(
         CategoryScale,
@@ -65,7 +68,12 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
             >
                 &lt;
             </button>
-            Опрос {data[0].period ?? ''}
+            <h2>Опрос {data[0].period ?? ''}</h2>
+            {
+                data[0].groups?.map((group, i) => {
+                    groupColors[i] = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.5)`;
+                })
+            }
             {
                 data[0].content?.map((question, key) => {
                     const dataByGroups = data[0].groups?.map(group => {
@@ -74,13 +82,14 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                             results: data[1]?.filter(result => result.group === group).map(res => res.questions)
                         }
                     });
+
                     switch (question.type) {
                         case 'title':
                             return (
-                                <h2>{question.value}</h2>
+                                <h4 key={key}>{question.value}</h4>
                             )
                         case 'rating':
-                            const datasets = dataByGroups.map(groupedResult => {
+                            const datasets = dataByGroups.map((groupedResult, group_i) => {
                                 let rates = [0, 0, 0, 0, 0];
                                 groupedResult.results.forEach(res => {
                                     if (res[qCounter] !== 'idk') {
@@ -90,7 +99,7 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                                 return {
                                     label: groupedResult.group,
                                     data: rates,
-                                    backgroundColor: 'rgba(255, 99, 132, 0.5)'
+                                    backgroundColor: groupColors[group_i]
                                 }
                             });
                             qCounter++;
@@ -125,7 +134,6 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                                     <br />
                                     Ответы: <br />
                                     {dataByGroups.map(groupedResult => {
-                                        console.log(groupedResult)
                                         return groupedResult.results.map(res => {
                                             if (res[qCounter - 1].replace(/\s|-/g, '') !== '') {
                                                 return (
@@ -146,7 +154,6 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                                     <br />
                                     Ответы: <br />
                                     {dataByGroups.map(groupedResult => {
-                                        console.log(groupedResult)
                                         return groupedResult.results.map(res => {
                                             if (res[qCounter - 1].replace(/\s|-/g, '') !== '') {
                                                 return (

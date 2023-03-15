@@ -1,0 +1,140 @@
+.info-block__survey-button {
+    padding: 0.3rem;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 0 2px #000;
+    border-radius: 3px;
+    background-color: #fff;
+    margin: 0.2rem;
+}
+
+.info-block__survey-button:hover {
+    background-color: rgb(230, 230, 230);
+    box-shadow: 0 0 0px #000;
+}
+
+.survey-constructor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+}
+
+.survey-constructor__create-btn {
+    position: relative;
+    font-size: 1.5rem;
+    background-color: transparent;
+}
+
+.survey-constructor__newsurvey-btn {
+    display: none;
+}
+
+.survey-constructor__newsurvey-btn.active {
+    display: block;
+}
+
+.survey-constructor__create-btn:hover {
+    color: rgb(94, 94, 94);
+}
+
+.survey-constructor__question {
+    display: flex;
+    justify-content: center;
+}
+
+.survey-constructor__create-btn::before {
+    content: "+";
+    position: absolute;
+    left: -1.5rem;
+    color: rgb(44, 196, 44);
+    font-style: normal;
+    font-weight: 900;
+}
+
+.survey-constructor__constructor-block {
+    display: none;
+    align-items: center;
+    flex-direction: column;
+}
+
+.survey-constructor__constructor-block.active {
+    display: flex;
+}
+
+.survey-constructor__title-inputs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.survey-constructor__title-inputs label {
+    padding-right: 1rem;
+}
+
+.survey-constructor__title-inputs .title-inputs__block {
+    margin: 10px 0;
+}
+
+.title-inputs__block {
+    display: flex;
+    align-items: center;
+}
+
+.title-inputs__block input,
+.title-inputs__block textarea {
+    box-shadow: 0 0 3px rgb(104, 104, 104);
+}
+
+.title-inputs__block input {
+    padding: 5px;
+}
+
+.title-inputs__block textarea {
+    resize: none;
+    padding: 10px;
+    margin-right: 1rem;
+}
+
+.survey-constructor__survey-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    margin: 10px;
+    width: 55%;
+    box-shadow: 0 0 4px rgb(51, 51, 51);
+    background-color: rgba(172, 172, 172, 0.562);
+}
+
+.block-title>input {
+    padding: 5px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 3px rgb(104, 104, 104);
+}
+
+.survey-constructor__survey-block fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.survey-constructor__survey-block input {
+    margin: 5px 5px;
+}
+
+.question-field {
+    padding: 5px;
+    margin-top: 10px;
+    resize: none;
+    box-shadow: 0 0 3px rgb(104, 104, 104);
+}
+
+.send-margin {
+    margin-top: 10px;
+}
+
+/*-------КОНЕЦ ПАНЕЛИ АДМИНИСТРАТОРА -------------*/

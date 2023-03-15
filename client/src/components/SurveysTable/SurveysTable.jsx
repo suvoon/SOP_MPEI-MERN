@@ -3,7 +3,15 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom'
 
 
-export const SurveysTable = ({ group, access, selectedSurvey = null, setSelectedSurvey = null }) => {
+export const SurveysTable = ({ group, access, selectedSurvey = null, setSelectedSurvey = null, showModal = null,
+    setSurveyPeriod = null,
+    setSurveyStartDate = null,
+    setSurveyEndDate = null,
+    setSurveyDescription = null,
+    setSurveyID = null,
+    setIsShowModal = null,
+    status = null
+}) => {
 
     const navigate = useNavigate();
     const [surveys, setSurveys] = useState([]);
@@ -32,7 +40,7 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
         }
     }
 
-    useEffect(updateSurveys, [token, navigate, group]);
+    useEffect(updateSurveys, [token, navigate, group, status]);
 
     const surveyDeleteHandler = function (id) {
         if (!token) {
@@ -104,13 +112,24 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
                                                                             value='Редактировать'
                                                                             name='edituser'
                                                                             className='info-block__button info-block__edit'
+                                                                            onClick={() => {
+                                                                                setSurveyPeriod(survey.period);
+                                                                                setSurveyStartDate(survey.start_date.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$1-$2-$3"));
+                                                                                setSurveyEndDate(survey.end_date.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$1-$2-$3"));
+                                                                                setSurveyDescription(survey.description);
+                                                                                setSurveyID(survey._id);
+                                                                                setIsShowModal(true)
+                                                                            }}
                                                                         />
                                                                     </>)
                                                                 case "user":
                                                                     return <Link to={`/survey/${survey.link}`}>Выполнить</Link>
                                                                 case "results":
                                                                     return (
-                                                                        <button onClick={() => setSelectedSurvey(survey._id)}>
+                                                                        <button
+                                                                            className='results__survey-select'
+                                                                            onClick={() => setSelectedSurvey(survey._id)}
+                                                                        >
                                                                             Выбрать
                                                                         </button>
                                                                     )

@@ -12,11 +12,7 @@ export const ForumsPage = () => {
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
 
-    const categoryDict = {
-        Important: "Важное",
-        Question: "Вопрос",
-        Discussion: "Обсуждение"
-    }
+    const categoryDict = ["Важное", "Вопрос", "Обсуждение"];
 
     const [dropdown, setDropdown] = useState(false);
     const [query, setQuery] = useState('');
@@ -25,6 +21,7 @@ export const ForumsPage = () => {
     const [category, setCategory] = useState('All');
     const [isShowModal, setIsShowModal] = useState(false);
     const [status, setStatus] = useState('');
+    const [ifAdmin, setIfAdmin] = useState(false);
 
     const [headline, setHeadline] = useState('');
     const [description, setDescription] = useState('');
@@ -61,6 +58,28 @@ export const ForumsPage = () => {
     useEffect(() => {
         updateTopics();
     }, [category, sortBy]);
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            var myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'GET',
+            };
+
+            fetch(`http://localhost:8000/admincheck`, requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    setIfAdmin(result);
+                })
+                .catch(error => { navigate('/') });
+        }
+    }, []);
 
     const createTopicHandler = function () {
         if (!token) {
@@ -142,9 +161,13 @@ export const ForumsPage = () => {
                                 value={createCategory}
                                 onChange={ev => { setCreateCategory(ev.target.value) }}
                             >
-                                <option value="Important">Важное</option>
-                                <option value="Question">Вопрос</option>
                                 <option value="Discussion">Обсуждение</option>
+                                <option value="Question">Вопрос</option>
+                                {
+                                    ifAdmin
+                                        ? <option value="Important">Важное</option>
+                                        : ''
+                                }
                             </Form.Select>
                         </Form.Group>
 
@@ -156,6 +179,7 @@ export const ForumsPage = () => {
                     <Button variant="primary" onClick={() => { createTopicHandler() }}>Создать</Button>
                 </Modal.Footer>
             </Modal>
+            <div className={`forum__error-message ${status !== 'Обсуждение успешно создано' ? 'error' : ''}`}>{status}</div>
             <form
                 className="search-block"
                 onSubmit={(ev) => {
@@ -270,7 +294,7 @@ export const ForumsPage = () => {
                     {
                         topics.map((topic, i) => {
                             return (
-                                <tr className='forums-table__row' key={i}>
+                                <tr key={i} className={`forums-table__row background-${topic.category}`} >
                                     <td>
                                         <Link
                                             to={`/forum/${topic.link}`}

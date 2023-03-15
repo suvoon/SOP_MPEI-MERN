@@ -33,3 +33,11 @@ td a:hover {
     cursor: pointer;
     border: 1px solid #000;
 }
+
+.results__survey-select {
+    background-color: transparent;
+}
+
+.results__survey-select:hover {
+    text-decoration: underline;
+}
