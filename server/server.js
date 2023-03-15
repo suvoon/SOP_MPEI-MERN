@@ -495,7 +495,7 @@ app.get('/forums', (req, res) => {
                 let sortQuery;
                 switch (sortby) {
                     case 'Relevant':
-                        sortQuery = { comments: 1 }
+                        sortQuery = { comments: -1 }
                         break;
                     case 'Latest':
                         sortQuery = { date: -1 }
@@ -523,6 +523,7 @@ app.post('/forums', (req, res) => {
 
     let { headline, description, category } = req.body;
     description = description.slice(0, 200);
+    headline = headline.slice(0, 100);
 
     const auth_header = req.headers.authorization;
     if (!auth_header) res.status(401).send('Unauthorized request');
@@ -598,6 +599,7 @@ app.get('/forum', (req, res) => {
 app.post('/forum', (req, res) => {
 
     let { reply, forum_id } = req.body;
+    reply = reply.slice(0, 200);
 
     const auth_header = req.headers.authorization;
     if (!auth_header) res.status(401).send('Unauthorized request');
@@ -635,6 +637,30 @@ app.post('/forum', (req, res) => {
     }
 });
 
+app.get('/admincheck', (req, res) => {
+
+    const auth_header = req.headers.authorization;
+    if (!auth_header) res.status(401).send('Unauthorized request');
+    else {
+        const accessToken = auth_header.split(' ')[1];
+
+        jwt.verify(accessToken, process.env.JWT_SECRET, (err, user) => {
+            if (err) res.status(401).send('Unauthorized request');
+            else {
+                dbUsers.find({ _id: user.id }, (err, docs) => {
+                    //console.log(docs, err);
+
+                    if (err || !docs[0]) {
+                        console.log("NOT FOUND");
+                        res.status(404).send({ errors: "error" });
+                    } else {
+                        res.json(docs[0].admin);
+                    }
+                });
+            }
+        });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`LISTENING TO PORT ${PORT}`);

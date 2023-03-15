@@ -11,6 +11,49 @@
     margin-bottom: 5px;
 }
 
+.forum__delete {
+    position: absolute;
+    display: flex;
+    width: 30px;
+    height: 30px;
+    top: 4rem;
+    right: 150px;
+    background-color: transparent;
+}
+
+.delete__stroke-1 {
+    width: 2px;
+    height: 30px;
+    margin: 1px 0px 0px 12px;
+    background-color: red;
+    transform: rotate(45deg);
+}
+
+.delete__stroke-2 {
+    width: 2px;
+    height: 30px;
+    margin: 1px 0px 0px 0px;
+    background-color: red;
+    transform: rotate(-45deg);
+}
+
+.forum__delete:hover+.delete__warning {
+    opacity: 1;
+}
+
+.delete__warning {
+    opacity: 0;
+    position: absolute;
+    transition: opacity 0.2s;
+    top: 6.5rem;
+    right: 80px;
+    font-size: 1.2rem;
+    border-radius: 4px;
+    font-weight: 400;
+    padding: 5px 8px;
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
 .forum__post {
     margin-bottom: 20px;
 }

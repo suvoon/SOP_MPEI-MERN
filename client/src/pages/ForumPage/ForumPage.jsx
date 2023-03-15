@@ -14,6 +14,7 @@ export const ForumPage = () => {
     const navigate = useNavigate();
     const [forumData, setForumData] = useState({});
     const [replyText, setReplyText] = useState('');
+    const [ifAdmin, setIfAdmin] = useState(false);
 
     const updateData = function () {
         if (!token) {
@@ -38,6 +39,28 @@ export const ForumPage = () => {
     };
 
     useEffect(updateData, [token, navigate, forumID]);
+
+    useEffect(() => {
+        if (!token) {
+            navigate('/');
+        }
+        else {
+            var myHeaders = new Headers();
+            myHeaders.append("Authorization", `Bearer ${token}`);
+
+            var requestOptions = {
+                headers: myHeaders,
+                method: 'GET',
+            };
+
+            fetch(`http://localhost:8000/admincheck`, requestOptions)
+                .then(response => response.json())
+                .then(result => {
+                    setIfAdmin(result);
+                })
+                .catch(error => { navigate('/') });
+        }
+    }, []);
 
     const commentAddHandler = function () {
         if (!token) {
@@ -72,6 +95,16 @@ export const ForumPage = () => {
         <main className='forum'>
             <header className='forum__headline'>
                 {forumData?.topic?.headline}
+                {ifAdmin
+                    ?
+                    <>
+                        <button className='forum__delete'>
+                            <div className="delete__stroke-1"></div>
+                            <div className="delete__stroke-2"></div>
+                        </button>
+                        <div className="delete__warning">Удалить обсуждение</div>
+                    </>
+                    : ''}
             </header>
             <div className="forum__post">
                 <span className="post__username">
@@ -109,7 +142,6 @@ export const ForumPage = () => {
             <div className="forum__comments-block">
                 {
                     forumData.comments?.map(comment => {
-                        console.log(comment)
                         return (
                             <div className='comments-block__item'>
                                 <span className="comments-block__author">{comment.author}</span>
