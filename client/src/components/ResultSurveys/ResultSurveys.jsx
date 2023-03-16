@@ -264,7 +264,7 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                                                                             <td>{dataset.data[2]}</td>
                                                                             <td>{dataset.data[3]}</td>
                                                                             <td>{dataset.data[4]}</td>
-                                                                            <td>{averageVote || 'Нет голосов'}</td>
+                                                                            <td>{averageVote.toFixed(3) || 'Нет голосов'}</td>
                                                                         </tr>
                                                                     </>
                                                                 )
@@ -278,9 +278,9 @@ export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
                                                             <td>{totals[3]}</td>
                                                             <td>{totals[4]}</td>
                                                             <td>
-                                                                {totals.reduce((prev, curr, i) => {
+                                                                {(totals.reduce((prev, curr, i) => {
                                                                     return prev += i == 5 ? 0 : (i + 1) * curr;
-                                                                }, 0) / (totals[5] || 1) || 'Нет голосов'}
+                                                                }, 0) / (totals[5] || 1)).toFixed(3) || 'Нет голосов'}
                                                             </td>
                                                         </tr>
                                                     </tbody>

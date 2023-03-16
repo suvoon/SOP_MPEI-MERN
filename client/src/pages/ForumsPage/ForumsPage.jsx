@@ -220,7 +220,7 @@ export const ForumsPage = () => {
                                 <button
                                     type='button'
                                     className={category === 'Important' ? 'active' : ''}
-                                    onClick={() => { setCategory('Important'); setDropdown(false) }}
+                                    onClick={() => { setCategory(0); setDropdown(false) }}
                                 >
                                     Важное
                                 </button>
@@ -229,7 +229,7 @@ export const ForumsPage = () => {
                                 <button
                                     type='button'
                                     className={category === 'Question' ? 'active' : ''}
-                                    onClick={() => { setCategory('Question'); setDropdown(false) }}
+                                    onClick={() => { setCategory(1); setDropdown(false) }}
                                 >
                                     Вопрос
                                 </button>
@@ -238,7 +238,7 @@ export const ForumsPage = () => {
                                 <button
                                     type='button'
                                     className={category === 'Discussion' ? 'active' : ''}
-                                    onClick={() => { setCategory('Discussion'); setDropdown(false) }}
+                                    onClick={() => { setCategory(2); setDropdown(false) }}
                                 >
                                     Обсуждение
                                 </button>

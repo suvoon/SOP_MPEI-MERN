@@ -85,39 +85,37 @@ app.post('/login', (req, res) => {
 
     dbUsers.find({ login }, (err, docs) => {
         //console.log(docs, err);
-
         if (err || !docs[0]) {
             console.log("NOT FOUND");
             res.status(404).send({ errors: "error" });
         } else {
-            let passwordAttempt;
             crypto.pbkdf2(password, docs[0].salt, docs[0].iterations, 64, 'sha512',
                 (err, derivedKey) => {
-                    passwordAttempt = derivedKey.toString('hex');
-                });
-            if (docs[0].password == passwordAttempt) {
-                const tokenData = {
-                    id: docs[0]._id,
-                    login: docs[0].login,
-                    group: docs[0].group,
-                    name: docs[0].name
-                }
-                const newToken = jwt.sign(tokenData, process.env.JWT_SECRET);
+                    let passwordAttempt = derivedKey.toString('hex');
+                    if (docs[0].password == passwordAttempt) {
+                        const tokenData = {
+                            id: docs[0]._id,
+                            login: docs[0].login,
+                            group: docs[0].group,
+                            name: docs[0].name
+                        }
+                        const newToken = jwt.sign(tokenData, process.env.JWT_SECRET);
 
-                dbUsers.updateOne({ login: login }, { token: newToken }, err => {
-                    if (err) console.log("ERROR UPDATING USER TOKEN:", err);
-                });
+                        dbUsers.updateOne({ login: login }, { token: newToken }, err => {
+                            if (err) console.log("ERROR UPDATING USER TOKEN:", err);
+                        });
 
-                docs[0].token = newToken;
-                res.json({
-                    name: docs[0].name,
-                    token: docs[0].token,
-                    admin: docs[0].admin,
-                    desc: docs[0].description
+                        docs[0].token = newToken;
+                        res.json({
+                            name: docs[0].name,
+                            token: docs[0].token,
+                            admin: docs[0].admin,
+                            desc: docs[0].description
+                        });
+                    } else {
+                        res.status(404).send({ errors: "error" });
+                    }
                 });
-            } else {
-                res.status(404).send({ errors: "error" });
-            }
 
         }
     });
@@ -270,30 +268,28 @@ app.post('/admin/user', (req, res) => {
             else {
                 let salt = crypto.randomBytes(128).toString('base64');
                 let iterations = 10000;
-                let hash;
                 crypto.pbkdf2(password, salt, iterations, 64, 'sha512', (err, derivedKey) => {
-                    hash = derivedKey.toString('hex');
-                });
-
-                dbUsers.create(
-                    {
-                        name,
-                        login,
-                        password: hash,
-                        salt: salt,
-                        iterations,
-                        token: '',
-                        admin,
-                        group,
-                        description: 'Пользователь'
-                    },
-                    err => {
-                        if (err) console.log("ERROR CREATING USER:", err);
-                        else {
-                            res.send(`Пользователь ${name} успешно создан`);
+                    let hash = derivedKey.toString('hex');
+                    dbUsers.create(
+                        {
+                            name,
+                            login,
+                            password: hash,
+                            salt: salt,
+                            iterations,
+                            token: '',
+                            admin,
+                            group,
+                            description: 'Пользователь'
+                        },
+                        err => {
+                            if (err) console.log("ERROR CREATING USER:", err);
+                            else {
+                                res.send(`Пользователь ${name} успешно создан`);
+                            }
                         }
-                    }
-                );
+                    );
+                });
             }
 
         });
@@ -636,7 +632,7 @@ app.post('/forums', (req, res) => {
         default:
             category = 2;
     }
-    description = description.slice(0, 200);
+    description = description.slice(0, 1000);
     headline = headline.slice(0, 100);
     const myFilter = new replaceDisallowedWords({
         additionalWords: 'ъзъ'
