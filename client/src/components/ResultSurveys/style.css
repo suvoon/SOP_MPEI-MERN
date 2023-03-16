@@ -9,3 +9,53 @@
 .return-btn:hover {
     color: rgb(141, 141, 141);
 }
+
+.result-view__diagrams,
+.result-view__tables {
+    background-color: transparent;
+}
+
+.result-view__diagrams.active,
+.result-view__tables.active {
+    text-decoration: underline;
+}
+
+.result-view__diagrams {
+    margin-right: 15px;
+}
+
+.table-value {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: normal;
+}
+
+.results-table th:nth-child(1) {
+    width: 150px;
+}
+
+.results-table tbody {
+    font-size: 1.3rem;
+}
+
+.results-table {
+    margin-bottom: 15px;
+}
+
+.results-table td {
+    font-size: 1.3rem;
+    padding: 7px 1rem;
+}
+
+.results-table th:nth-child(2),
+.results-table th:nth-child(3),
+.results-table th:nth-child(4),
+.results-table th:nth-child(5),
+.results-table th:nth-child(6) {
+    text-align: center;
+    width: 80px;
+}
+
+.results-table th:nth-child(7) {
+    width: 200px;
+}
