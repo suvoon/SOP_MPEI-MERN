@@ -2,7 +2,8 @@ import './style.css'
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom'
 
-
+// Компонент таблицы с опросами
+// Параметры - отображение для одной группы или нескольких, отображение для администратора
 export const SurveysTable = ({ group, access, selectedSurvey = null, setSelectedSurvey = null, showModal = null,
     setSurveyPeriod = null,
     setSurveyStartDate = null,
@@ -18,6 +19,7 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
 
     const token = localStorage.getItem('token');
 
+    // Запрос на получение данных об опросе
     const updateSurveys = () => {
         if (!token) {
             navigate('/');
@@ -42,6 +44,7 @@ export const SurveysTable = ({ group, access, selectedSurvey = null, setSelected
 
     useEffect(updateSurveys, [token, navigate, group, status]);
 
+    // Запрос на удаление данных опроса
     const surveyDeleteHandler = function (id) {
         if (!token) {
             navigate('/');

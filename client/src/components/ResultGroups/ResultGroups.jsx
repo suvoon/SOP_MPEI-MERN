@@ -12,12 +12,14 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2'
 
+// Компонент для отображения результата опроса по группам
 export const ResultGroups = ({ selectedGroup, setSelectedGroup }) => {
 
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
     const [data, setData] = useState([]);
 
+    // Отправка запроса для пролучения результатов опроса группы
     useEffect(() => {
         if (!token) {
             navigate('/');

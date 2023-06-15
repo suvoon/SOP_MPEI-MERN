@@ -7,6 +7,7 @@ import {
 } from 'react-bootstrap';
 import './style.css'
 
+// Компонент содателя и редактора пользователей
 export const AdminUser = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
@@ -14,6 +15,7 @@ export const AdminUser = () => {
     const [query, setQuery] = useState('');
     const [users, setUsers] = useState([]);
 
+    // Информация о текстовых полях данных пользователя
     const [userName, setUserName] = useState('');
     const [userLogin, setUserLogin] = useState('');
     const [userPass, setUserPass] = useState('');
@@ -28,8 +30,9 @@ export const AdminUser = () => {
     const [userIDModal, setUserIDModal] = useState('');
 
     const [status, setStatus] = useState('');
-    const [isShowModal, setIsShowModal] = useState(false);
 
+    // Функции для модального окна
+    const [isShowModal, setIsShowModal] = useState(false);
     const closeModal = () => setIsShowModal(false);
     const showModal = (name, login, group, admin, id) => {
         setUserNameModal(name);
@@ -40,6 +43,7 @@ export const AdminUser = () => {
         setIsShowModal(true)
     };
 
+    // Отправка запроса на добавление пользователя
     const userAddHandler = function (ev) {
         ev.preventDefault();
 
@@ -74,6 +78,7 @@ export const AdminUser = () => {
 
     }
 
+    // Отправка запроса на удаление пользователя
     const userDeleteHandler = function (id, name) {
 
         if (!token) {
@@ -104,6 +109,7 @@ export const AdminUser = () => {
         }
     }
 
+    // Отправка запроса на обновление пользователя
     const userUpdateHandler = function () {
 
         if (!token) {
@@ -139,6 +145,7 @@ export const AdminUser = () => {
         }
     }
 
+    // Отправка http-запроса с поисковым запросом
     const searchSubmitHandler = function () {
 
         if (!token) {
@@ -165,6 +172,7 @@ export const AdminUser = () => {
 
     return (
         <>
+            {/* Модальное окно */}
             <Modal show={isShowModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Редактировать</Modal.Title>
@@ -235,6 +243,7 @@ export const AdminUser = () => {
                 </Modal.Footer>
             </Modal>
 
+            {/* Поиск пользователя */}
             <div className="usersearch-block">
 
                 <div className={`error-message error-userchange ${status ? 'active' : ''}`} >
@@ -259,6 +268,7 @@ export const AdminUser = () => {
                     </form>
                 </div>
 
+                {/* Результаты поиска */}
                 <div className="admin-query">
                     {
                         users.map((user, i) => {
@@ -292,6 +302,7 @@ export const AdminUser = () => {
                 </div>
             </div>
 
+            {/* Добавление пользователя */}
             <div className="useradd-block">
                 <h2>Добавление пользователя:</h2>
                 <form method="post">

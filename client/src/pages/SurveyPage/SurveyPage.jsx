@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import './style.css'
 
+// Страница опроса
 export const SurveyPage = () => {
 
     let { surveyID } = useParams();
@@ -11,6 +12,7 @@ export const SurveyPage = () => {
 
     const token = localStorage.getItem('token');
 
+    // Отправка запроса на получение данных опроса
     useEffect(() => {
         if (!token) {
             navigate('/');
@@ -27,9 +29,13 @@ export const SurveyPage = () => {
             fetch(`http://localhost:8000/survey?surveyID=${surveyID}`, requestOptions)
                 .then(response => response.json())
                 .then(result => {
-                    setSurveyData(result);
+                    if (result?.status == 'error') {
+                        navigate('/404')
+                    } else {
+                        setSurveyData(result);
+                    }
                 })
-                .catch(error => { navigate('/') });
+                .catch(error => { navigate('/404') });
         }
     }, [token, navigate, surveyID]);
 

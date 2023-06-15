@@ -4,13 +4,17 @@ import './style.css'
 import { AdminUser } from '../../components/AdminUser/AdminUser';
 import { AdminSurvey } from '../../components/AdminSurvey/AdminSurvey';
 
+// Страница панели администратора
 export const AdminPage = () => {
+
+    //TODO:: сначала проверить token и его правильность / админку, потом рендерить страницу
 
     const navigate = useNavigate();
     const [openTab, setOpenTab] = useState(true);
 
     const token = localStorage.getItem('token');
 
+    // Получение подтверждения о том, имеются ли права администратора у пользователя
     useEffect(() => {
         if (!token) {
             navigate('/');

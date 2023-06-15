@@ -1,5 +1,6 @@
 import './style.css'
 
+// Страница профиля пользователя
 export const ProfilePage = () => {
 
     return (<>
@@ -25,9 +26,6 @@ export const ProfilePage = () => {
                     <input type="submit" value="Изменить" name="uname-change-submit" class="submit-btn" />
                 </form>
             </div>
-        </div>
-        <div class="error-message">
-            {/* <?php echo $data[1]; ?> */}
         </div>
     </>
     )

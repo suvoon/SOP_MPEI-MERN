@@ -7,6 +7,7 @@ import {
     Form,
 } from 'react-bootstrap';
 
+// Страница форума
 export const ForumsPage = () => {
 
     const token = localStorage.getItem('token');
@@ -14,12 +15,13 @@ export const ForumsPage = () => {
 
     const categoryDict = ["Важное", "Вопрос", "Обсуждение"];
 
+    // Параметры отображения обсуждений (фильтры)
     const [dropdown, setDropdown] = useState(false);
     const [query, setQuery] = useState('');
     const [topics, setTopics] = useState([]);
     const [sortBy, setSortBy] = useState('Default');
     const [category, setCategory] = useState('All');
-    const [isShowModal, setIsShowModal] = useState(false);
+
     const [status, setStatus] = useState('');
     const [ifAdmin, setIfAdmin] = useState(false);
 
@@ -27,11 +29,14 @@ export const ForumsPage = () => {
     const [description, setDescription] = useState('');
     const [createCategory, setCreateCategory] = useState('Discussion');
 
+    // Функции для модального окна
+    const [isShowModal, setIsShowModal] = useState(false);
     const closeModal = () => setIsShowModal(false);
     const showModal = () => {
         setIsShowModal(true)
     };
 
+    // Отправка запроса на получение данных обсуждений с фильтрами
     const updateTopics = function () {
         if (!token) {
             navigate('/');
@@ -59,6 +64,7 @@ export const ForumsPage = () => {
         updateTopics();
     }, [category, sortBy]);
 
+    // Получение подтверждения о том, имеются ли права администратора у пользователя
     useEffect(() => {
         if (!token) {
             navigate('/');
@@ -81,6 +87,7 @@ export const ForumsPage = () => {
         }
     }, []);
 
+    // Отправка запроса на создание обсуждения
     const createTopicHandler = function () {
         if (!token) {
             navigate('/');
@@ -117,6 +124,7 @@ export const ForumsPage = () => {
 
     return (
         <>
+            {/* Модальное окно создания обсуждения */}
             <Modal show={isShowModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Создать обсуждение</Modal.Title>
@@ -179,6 +187,7 @@ export const ForumsPage = () => {
                     <Button variant="primary" onClick={() => { createTopicHandler() }}>Создать</Button>
                 </Modal.Footer>
             </Modal>
+
             <div className={`forum__error-message ${status !== 'Обсуждение успешно создано' ? 'error' : ''}`}>{status}</div>
             <form
                 className="search-block"
@@ -219,7 +228,7 @@ export const ForumsPage = () => {
                             <li>
                                 <button
                                     type='button'
-                                    className={category === 'Important' ? 'active' : ''}
+                                    className={category === 0 ? 'active' : ''}
                                     onClick={() => { setCategory(0); setDropdown(false) }}
                                 >
                                     Важное
@@ -228,7 +237,7 @@ export const ForumsPage = () => {
                             <li>
                                 <button
                                     type='button'
-                                    className={category === 'Question' ? 'active' : ''}
+                                    className={category === 1 ? 'active' : ''}
                                     onClick={() => { setCategory(1); setDropdown(false) }}
                                 >
                                     Вопрос
@@ -237,7 +246,7 @@ export const ForumsPage = () => {
                             <li>
                                 <button
                                     type='button'
-                                    className={category === 'Discussion' ? 'active' : ''}
+                                    className={category === 2 ? 'active' : ''}
                                     onClick={() => { setCategory(2); setDropdown(false) }}
                                 >
                                     Обсуждение

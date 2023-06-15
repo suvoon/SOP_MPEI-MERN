@@ -1,6 +1,7 @@
 import { SurveysTable } from '../../components/SurveysTable/SurveysTable';
 import './style.css'
 
+// Страница опросов
 export const SurveysPage = () => {
 
     return (

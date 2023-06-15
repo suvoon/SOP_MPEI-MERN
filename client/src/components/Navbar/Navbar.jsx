@@ -7,6 +7,7 @@ import {
 } from 'react-bootstrap';
 import { useState, useEffect } from 'react';
 
+// Компонент панели навигации
 export const NavBar = () => {
 
     const navigate = useNavigate();
@@ -24,12 +25,14 @@ export const NavBar = () => {
         }
     }, [])
 
+    // Функции модального окна
     const closeModal = () => setIsShowModal(false);
     const showModal = (ev) => {
         ev.preventDefault();
         setIsShowModal(true)
     };
 
+    // Отправка запроса для попытки авторизации
     function handleLogin(ev) {
         ev.preventDefault();
         let myHeaders = new Headers();
@@ -49,7 +52,7 @@ export const NavBar = () => {
             .then(response => response.json())
             .then(result => {
                 if ('errors' in result) {
-                    alert('Не получилось войти')
+                    alert('Неправильный логин и/или пароль')
                 } else {
                     console.log(result.desc);
                     localStorage.setItem('token', result.token);
@@ -66,6 +69,7 @@ export const NavBar = () => {
             .catch(error => console.log('error', error));
     }
 
+    // Выход из аккаунта пользователя
     const handleLogout = (ev) => {
         ev.preventDefault();
         localStorage.removeItem('token');
@@ -76,6 +80,7 @@ export const NavBar = () => {
         navigate('/');
     }
 
+    // Всплывающее меню пользователя
     const profileMenu = <>
         <Link className='nav-link'>
             {JSON.parse(localStorage.getItem('user'))?.name}
@@ -133,6 +138,7 @@ export const NavBar = () => {
                 </div>
             </nav>
 
+            {/* Модальное окно авторизации */}
             <Modal show={isShowModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Вход</Modal.Title>

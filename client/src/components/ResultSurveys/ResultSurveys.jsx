@@ -12,15 +12,19 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2'
 
+// Компонент для отображения результата одного опроса разными группами
 export const ResultSurveys = ({ selectedSurvey, setSelectedSurvey }) => {
 
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
+
+    // Данные об опросе и виде отображения результата
     const [data, setData] = useState([['']]);
     const [view, setView] = useState('Diagram');
     let qCounter = 0;
     let groupColors = [];
 
+    // Отправка запроса для пролучения результатов прохождения опроса
     useEffect(() => {
         if (!token) {
             navigate('/');

@@ -6,13 +6,16 @@ import { ResultSurveys } from '../../components/ResultSurveys/ResultSurveys';
 import { ResultGroups } from '../../components/ResultGroups/ResultGroups';
 import './style.css'
 
+// Страница результатов опросов
 export const ResultsPage = () => {
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
 
+    // Выбранная группа/опрос для отображения
     const [selectedGroup, setSelectedGroup] = useState('');
     const [selectedSurvey, setSelectedSurvey] = useState('');
 
+    // Получение подтверждения о том, имеются ли права администратора у пользователя
     useEffect(() => {
         if (!token) {
             navigate('/');

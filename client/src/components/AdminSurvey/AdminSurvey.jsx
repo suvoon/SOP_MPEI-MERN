@@ -8,10 +8,12 @@ import {
 } from 'react-bootstrap';
 import './style.css'
 
+// Компонент содателя и редактора опросов
 export const AdminSurvey = () => {
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
+    // Информация об опросах
     const [surveyPeriod, setSurveyPeriod] = useState('');
     const [surveyStartDate, setSurveyStartDate] = useState('');
     const [surveyEndDate, setSurveyEndDate] = useState('');
@@ -23,8 +25,9 @@ export const AdminSurvey = () => {
     const [redirect, setRedirect] = useState(false);
 
     const [status, setStatus] = useState('');
-    const [isShowModal, setIsShowModal] = useState(false);
 
+    // Функции для модального окна
+    const [isShowModal, setIsShowModal] = useState(false);
     const closeModal = () => setIsShowModal(false);
 
     useEffect(() => {
@@ -38,6 +41,7 @@ export const AdminSurvey = () => {
         setRedirect(true);
     };
 
+    // Отправка запроса на обновление опроса
     const surveyUpdateHandler = function () {
         if (!token) {
             navigate('/');
@@ -70,10 +74,12 @@ export const AdminSurvey = () => {
         }
     };
 
+    // Создание блока опроса в создателе опросов
     const createSurveyBlock = function () {
         setSurveyBlocks(surveyBlocks.concat([[]]));
     }
 
+    // Создание вопроса в блоке в создателе опросов
     const createQuestion = function (id) {
         setSurveyBlocks(surveyBlocks.map((surveyBlock, blockID) => {
             return blockID === id ? surveyBlock.concat("rating") : surveyBlock;
@@ -82,6 +88,7 @@ export const AdminSurvey = () => {
 
     return (
         <>
+            {/* Модальное окно */}
             <Modal show={isShowModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>Редактировать</Modal.Title>
@@ -142,6 +149,7 @@ export const AdminSurvey = () => {
                 </Modal.Footer>
             </Modal>
 
+            {/* Таблица опросов */}
             <SurveysTable
                 group={false}
                 access="admin"
@@ -153,6 +161,8 @@ export const AdminSurvey = () => {
                 setSurveyID={setSurveyID}
                 status={status}
             />
+
+            {/* Создатель опросов */}
             <div className="survey-constructor">
                 <button
                     className={`survey-constructor__create-btn survey-constructor__newsurvey-btn ${createSurvey ? '' : 'active'}`}
@@ -210,11 +220,11 @@ export const AdminSurvey = () => {
                                                             </div>
                                                             <div className="question-type">
                                                                 <label>Обязательное поле: </label>
-                                                                <input type="radio" name={`question[${id}][${qid}]`} value="input" />
+                                                                <input type="radio" name={`question[${id}][${qid}]`} value="input_imp" />
                                                             </div>
                                                             <div className="question-type">
                                                                 <label>Необязательное поле: </label>
-                                                                <input type="radio" name={`question[${id}][${qid}]`} value="input_imp" />
+                                                                <input type="radio" name={`question[${id}][${qid}]`} value="input" />
                                                             </div>
                                                             <textarea className="question-field" name={`qfield[${id}][${qid}]`} cols="30" rows="4" placeholder="Введите вопрос">
 

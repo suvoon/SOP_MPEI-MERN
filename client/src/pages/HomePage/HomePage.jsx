@@ -1,6 +1,16 @@
+import { useEffect } from 'react';
 import './style.css'
 
+// Домашняя страница системы
 export const HomePage = () => {
+
+    const status = window.location.search.split('=')[1];
+
+    if (status === "wrongdate") {
+        alert("Некорректная дата начала/окончания опроса")
+    } else if (status === "success") {
+        alert("Опрос создан успешно")
+    }
 
     return (
         <>

@@ -1,6 +1,7 @@
 import './style.css'
 import { Container } from "../Container/Container"
 
+// Компонент подвала страницы
 export const Footer = () => {
     return (
         <div className='footer'>

@@ -1,5 +1,6 @@
 import './style.css'
 
+// Компонент контейнера
 export const Container = (props) => {
 
     return (

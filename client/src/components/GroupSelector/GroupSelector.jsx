@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom'
 import { SurveysTable } from '../SurveysTable/SurveysTable';
 
-
+// Компонент выбора группы на странице выбора результатов
 export const GroupSelector = ({ selectedGroup, setSelectedGroup, selectedSurvey, setSelectedSurvey }) => {
     const [groups, setGroups] = useState([]);
 
     const navigate = useNavigate();
     const token = localStorage.getItem('token');
 
+    // Отправка запроса на получение списка групп
     useEffect(() => {
         if (!token) {
             navigate('/');

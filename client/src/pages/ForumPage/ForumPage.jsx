@@ -7,16 +7,20 @@ import {
     Form,
 } from 'react-bootstrap';
 
+// Страница одного обсуждения
 export const ForumPage = () => {
 
     let { forumID } = useParams();
     const token = localStorage.getItem('token');
     const navigate = useNavigate();
+
+    // Информация об обсуждении и комментариях
     const [forumData, setForumData] = useState({});
     const [replyText, setReplyText] = useState('');
     const [ifAdmin, setIfAdmin] = useState(false);
     const [status, setStatus] = useState('');
 
+    // Отправка запроса на получение данных обсуждения
     const updateData = function () {
         if (!token) {
             navigate('/');
@@ -41,6 +45,7 @@ export const ForumPage = () => {
 
     useEffect(updateData, [token, navigate, forumID]);
 
+    // Получение подтверждения о том, имеются ли права администратора у пользователя
     useEffect(() => {
         if (!token) {
             navigate('/');
@@ -63,6 +68,7 @@ export const ForumPage = () => {
         }
     }, []);
 
+    // Отправка запроса на добавление комментария
     const commentAddHandler = function () {
         if (!token) {
             navigate('/');
@@ -92,6 +98,7 @@ export const ForumPage = () => {
         }
     }
 
+    // Отправка запроса на удаление обсуждения
     const topicDeleteHandler = function () {
         if (!token) {
             navigate('/');
@@ -119,6 +126,7 @@ export const ForumPage = () => {
         }
     }
 
+    // Отправка запроса на удаление комментария
     const commentDeleteHandler = function (commentID) {
         if (!token) {
             navigate('/');
@@ -171,7 +179,7 @@ export const ForumPage = () => {
                     {forumData?.topic?.author}
                 </span>
                 <span className="post__data">
-                    {forumData?.topic?.date?.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$2.$3.$1")}
+                    {forumData?.topic?.date?.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$3.$2.$1")}
                 </span>
                 <div className="post__description">
                     {forumData?.topic?.description}
@@ -221,7 +229,7 @@ export const ForumPage = () => {
                                     </>
                                     : ''}
                                 <span className="comments-block__author">{comment.author}</span>
-                                <span className="comments-block__date">{comment.date.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$2.$3.$1")}</span>
+                                <span className="comments-block__date">{comment.date.replace(/(\d{4})-(\d{2})-(\d{2}).*/g, "$3.$2.$1")}</span>
                                 <div className="comments-block__text">{comment.text}</div>
                             </div>
                         )
